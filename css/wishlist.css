@@ -282,7 +282,7 @@ button:hover {
     align-items: center;
     justify-content: center;
     margin-top: 5px;
-    background-color: transparent; /* Ensure no background */
+    background-color: white;
 }
 
 select {
@@ -291,7 +291,7 @@ select {
     border: 1px solid #ced4da;
     border-radius: 4px;
     box-sizing: border-box;
-    background-color: transparent; /* No background for select */
+    background-color: white; /* No background for select */
 }
 
 .modal {
@@ -307,7 +307,7 @@ select {
 }
 
 .modal-content {
-    background-color: #fff;
+    background-color: white;
     margin: 15% auto;
     padding: 20px;
     border: 1px solid #888;
