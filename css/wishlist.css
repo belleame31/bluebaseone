@@ -12,7 +12,7 @@ Album {
 }
 
 .album-header {
-    background-color: transparent; /* Background removed for Bloom Your Album */
+    background-color: #fff; /* Changed from transparent */
     padding: 20px;
     border-radius: 10px; /* Rounded corners for the rectangle */
     margin-bottom: 20px;
@@ -29,11 +29,11 @@ Album {
     color: #6c757d; /* Gray for paragraph text */
     font-size: 1.1rem;
     margin: 0;
-    background-color: transparent; /* Explicitly no background */
+    background-color: #fff; /* Changed from transparent */
 }
 
 .your-albums-header {
-    background-color: transparent; /* Background removed for Your Albums */
+    background-color: #fff; /* Changed from transparent */
     padding: 15px 20px;
     border-radius: 10px; /* Rounded corners */
     margin-bottom: 15px;
@@ -69,7 +69,7 @@ Album {
     border: 1px solid #ced4da;
     border-radius: 4px;
     box-sizing: border-box;
-    background-color: transparent; /* Ensure inputs have no background */
+    background-color: #fff; /* Changed from transparent */
 }
 
 .album-creation button, #edit-album-form button {
@@ -107,7 +107,7 @@ Album {
     cursor: pointer;
     margin-left: 10px;
     vertical-align: middle;
-    background-color: transparent; /* No background for icon */
+    background-color: #fff; /* Changed from transparent */
 }
 
 .edit-logo:hover {
@@ -129,7 +129,7 @@ Album {
     border: 1px solid #ced4da;
     border-radius: 4px;
     box-sizing: border-box;
-    background-color: transparent; /* Ensure search input has no background */
+    background-color: #fff; /* Changed from transparent */
 }
 
 .search-bar button {
@@ -160,7 +160,7 @@ Album {
     border: 1px solid #ced4da;
     border-radius: 4px;
     box-sizing: border-box;
-    background-color: transparent; /* Ensure album search input has no background */
+    background-color: #fff; /* Changed from transparent */
 }
 
 .album-search-bar button {
@@ -223,7 +223,7 @@ Album {
     border: 1px solid #ddd;
     padding: 10px;
     border-radius: 5px;
-    background-color: transparent; /* Removed background color */
+    background-color: #fff; /* Changed from transparent */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -282,7 +282,7 @@ button:hover {
     align-items: center;
     justify-content: center;
     margin-top: 5px;
-    background-color: white;
+    background-color: #fff; /* Changed from transparent */
 }
 
 select {
@@ -291,7 +291,7 @@ select {
     border: 1px solid #ced4da;
     border-radius: 4px;
     box-sizing: border-box;
-    background-color: white; /* No background for select */
+    background-color: #fff; /* Changed from transparent */
 }
 
 .modal {
@@ -307,7 +307,7 @@ select {
 }
 
 .modal-content {
-    background-color: white;
+    background-color: #fff; /* Changed from transparent */
     margin: 15% auto;
     padding: 20px;
     border: 1px solid #888;
@@ -324,7 +324,7 @@ select {
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
-    background-color: transparent; /* No background */
+    background-color: #fff; /* Changed from transparent */
 }
 
 .close-button:hover,
@@ -379,7 +379,7 @@ select {
     border: 1px solid #ddd;
     padding: 10px;
     border-radius: 5px;
-    background-color: transparent; /* Removed background color */
+    background-color: #fff; /* Changed from transparent */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -458,7 +458,7 @@ select {
 #edit-album-modal .modal-content {
     max-width: 400px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    background-color: transparent; /* Match other modals */
+    background-color: #fff; /* Changed from transparent */
 }
 
 #edit-album-form {
@@ -484,7 +484,7 @@ select {
     top: 100%;
     left: 0;
     right: 0;
-    background-color: transparent; /* Removed background color */
+    background-color: #fff; /* Changed from transparent */
     border: 1px solid #ced4da;
     border-radius: 4px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -501,11 +501,11 @@ select {
     align-items: flex-start;
     gap: 10px;
     cursor: pointer;
-    background-color: transparent; /* No background */
+    background-color: #fff; /* Changed from transparent */
 }
 
 .suggestion-item:hover {
-    background-color: transparent; /* Remove hover background */
+    background-color: #fff; /* Changed from transparent */
 }
 
 .suggestion-image {
@@ -519,7 +519,7 @@ select {
     flex-grow: 1;
     font-size: 0.9rem;
     color: #333;
-    background-color: transparent; /* No background */
+    background-color: #fff; /* Changed from transparent */
 }
 
 .suggestion-name {
@@ -531,7 +531,7 @@ select {
     margin: 2px 0;
     font-size: 0.8rem;
     color: #6c757d;
-    background-color: transparent; /* No background */
+    background-color: #fff; /* Changed from transparent */
 }
 
 .suggestion-item button {
