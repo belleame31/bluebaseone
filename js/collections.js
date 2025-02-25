@@ -80,8 +80,11 @@ function displayCards(cards) {
         const cardElement = document.createElement('div');
         cardElement.classList.add('card');
         cardElement.innerHTML = `
-            <div class="card-images">
-                ${card.frontImageUrl ? `<img src="${card.frontImageUrl}" alt="${card.album}">` : ''}
+            <div class="flip-card">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front" style="background-image: url('${card.frontImageUrl}')"></div>
+                    <div class="flip-card-back" style="background-image: url('${card.backImageUrl}')"></div>
+                </div>
             </div>
             <div class="card-details">
                 <h3>${card.member}</h3>
@@ -106,6 +109,14 @@ function displayCards(cards) {
                 openFullscreenFlipCard(card);
             }
         });
+
+        // Add flip on click/tap for the small card
+        const flipCardInner = cardElement.querySelector('.flip-card-inner');
+        cardElement.querySelector('.flip-card').addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent triggering the fullscreen immediately
+            flipCardInner.classList.toggle('flipped');
+        });
+
         cardContainer.appendChild(cardElement);
     });
 }
@@ -147,12 +158,20 @@ async function deleteCard(event, cardId) {
 // Function to open the fullscreen flip card modal
 function openFullscreenFlipCard(card) {
     const fullscreenFlipCard = document.getElementById('fullscreen-flipcard');
+    const flipCardInner = fullscreenFlipCard.querySelector('.flip-card-inner');
     const flipCardFront = fullscreenFlipCard.querySelector('.flip-card-front');
     const flipCardBack = fullscreenFlipCard.querySelector('.flip-card-back');
     
     flipCardFront.style.backgroundImage = `url('${card.frontImageUrl}')`;
     flipCardBack.style.backgroundImage = `url('${card.backImageUrl}')`;
+    flipCardInner.classList.remove('flipped'); // Reset flip state
     fullscreenFlipCard.style.display = 'flex';
+
+    // Add click/tap to flip in fullscreen
+    fullscreenFlipCard.querySelector('.flip-card').addEventListener('click', (e) => {
+        e.stopPropagation();
+        flipCardInner.classList.toggle('flipped');
+    });
 }
 
 // Function to close the fullscreen flip card modal
@@ -236,6 +255,14 @@ function handleSortChange() {
 document.getElementById('sort-dropdown').addEventListener('change', handleSortChange);
 document.getElementById('search-input').addEventListener('keyup', handleSearch);
 document.getElementById('show-favorites-button').addEventListener('click', toggleShowFavorites);
+
+// Close fullscreen modal when clicking outside the card
+document.addEventListener('click', (e) => {
+    const fullscreenFlipCard = document.getElementById('fullscreen-flipcard');
+    if (e.target === fullscreenFlipCard) {
+        closeFullscreenFlipCard();
+    }
+});
 
 // Initialize the page
 window.onload = function() {
