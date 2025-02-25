@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Loading...</title>
+    <link rel="stylesheet" href="../css/collections.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+    <!-- Firebase CDN (9.15.0) -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+
+    <!-- Firebase config -->
+    <script src="../js/firebase.config.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="../about_members.html">About the Members</a></li>
+                <li><a href="index.html">Collections</a></li>
+                <li><a href="../account.html">My Account</a></li>
+                <li><a href="../upload.html">Upload Photos</a></li>
+                <li><a href="../wishlist.html">My Album</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="catalog">
+            <h2 id="catalog-heading">Loading...</h2>
+            <div class="controls">
+                <div class="sort-dropdown">
+                    <label for="sort-dropdown">Sort by:</label>
+                    <select id="sort-dropdown">
+                        <option value="newest">Newest to Oldest</option>
+                        <option value="oldest">Oldest to Newest</option>
+                    </select>
+                </div>
+                <div class="search-bar">
+                    <label for="search-input">Search:</label>
+                    <input type="text" id="search-input" placeholder="Search by album, member, or type" />
+                </div>
+            </div>
+            <button id="show-favorites-button" class="show-favorites-button">Show Favorites</button>
+            <div class="cards" id="card-container">
+                <!-- Cards will be dynamically generated here -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 ZEROBASEONE Photocard Collection</p>
+    </footer>
+
+    <!-- Fullscreen Flip Card Modal -->
+    <div id="fullscreen-flipcard" class="flipcard-modal">
+        <div class="flip-card">
+            <div class="flip-card-inner">
+                <div class="flip-card-front"></div>
+                <div class="flip-card-back"></div>
+            </div>
+        </div>
+        <span class="close-button" onclick="closeFullscreenFlipCard()">×</span>
+    </div>
+
+    <script src="../js/collections.js"></script>
+</body>
+</html>

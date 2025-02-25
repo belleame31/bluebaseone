@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Card Image Position</title>
+    <link rel="stylesheet" href="../css/colledit.css">
+
+    <!-- Firebase CDN (compatibility mode for Firebase v9) -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase config -->
+    <script src="../js/firebase.config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Edit Image Position</h2>
+        <div class="position-controls">
+            <label for="horizontal-position">Horizontal Position:</label>
+            <input type="range" id="horizontal-position" name="horizontal-position" min="0" max="100" value="50" oninput="adjustImagePosition()">
+            
+            <label for="vertical-position">Vertical Position:</label>
+            <input type="range" id="vertical-position" name="vertical-position" min="0" max="100" value="50" oninput="adjustImagePosition()">
+        </div>
+        <div class="flip-card">
+            <div class="flip-card-inner">
+                <div class="flip-card-front"></div>
+                <div class="flip-card-back"></div>
+            </div>
+        </div>
+        <button onclick="saveImagePosition()">Save</button>
+    </div>
+    <script src="../js/colledit.js"></script>
+</body>
+</html>

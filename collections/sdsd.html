@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photocard Catalogue</title>
+    <style>
+        /* General body styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+
+        /* Main content styles */
+        main {
+            flex-grow: 1;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .catalog {
+            padding-top: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .catalog h1 {
+            text-align: center;
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 40px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        /* Card container */
+        .card {
+            cursor: pointer;
+            width: 100%;
+            max-width: 260px;
+            height: 400px; /* Standard photocard dimensions */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            border: 2px solid #e0e0e0; /* Added border to mimic a photocard */
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Card face styles */
+        .card-face {
+            width: 100%;
+            height: 350px; /* Height to maintain the photocard look */
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f9f9f9; /* Light background for a photocard effect */
+            border-bottom: 1px solid #e0e0e0; /* Subtle separation for detail section */
+        }
+
+        .card-images {
+            width: 90%; /* Slight inset for the photocard look */
+            height: 90%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px; /* Softer edges for the photocard */
+            overflow: hidden;
+        }
+
+        .card-images img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px; /* Added rounded corners */
+        }
+
+        /* Card details section */
+        .card-details {
+            padding: 10px;
+            text-align: center;
+            width: 100%;
+            background-color: #fff;
+        }
+
+        .card-details h3 {
+            font-size: 18px;
+            color: rgb(226, 13, 13);
+            margin: 0 0 5px;
+        }
+
+        .card-details p {
+            font-size: 14px;
+            color: rgb(196, 45, 45);
+            margin: 0;
+        }
+
+        /* Fullscreen overlay styling */
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+            perspective: 1000px;
+        }
+
+        .fullscreen-card-container {
+            width: 300px; /* Fixed width */
+            height: 400px; /* Fixed height */
+            position: relative;
+        }
+
+        .fullscreen-card {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            transition: transform 1s;
+        }
+
+        .fullscreen-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .fullscreen-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+        }
+
+        .fullscreen-face.front {
+            background-color: #fff;
+        }
+
+        .fullscreen-face.front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px; /* Added rounded corners */
+        }
+
+        .fullscreen-face.back {
+            background-color: #007bff;
+            color: white;
+            transform: rotateY(180deg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 32px;
+            color: #fff;
+            cursor: pointer;
+            z-index: 100
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="catalog">
+            <h1>Photocard Catalogue</h1>
+            <div class="cards">
+                <div class="card" onclick="openFullscreen(this)">
+                    <div class="card-face front">
+                        <div class="card-images">
+                            <img src="https://i.ibb.co/7tSzM4tx/Penguins.jpg" alt="Placeholder Image">
+                        </div>
+                    </div>
+                    <div class="card-details">
+                        <h3>Photocard Title 1</h3>
+                        <p>Description for photocard 1</p>
+                    </div>
+                </div>
+                <div class="card" onclick="openFullscreen(this)">
+                    <div class="card-face front">
+                        <div class="card-images">
+                            <img src="https://i.ibb.co/7tSzM4tx/Penguins.jpg" alt="Placeholder Image">
+                        </div>
+                    </div>
+                    <div class="card-details">
+                        <h3>Photocard Title 2</h3>
+                        <p>Description for photocard 2</p>
+                    </div>
+                </div>
+                <div class="card" onclick="openFullscreen(this)">
+                    <div class="card-face front">
+                        <div class="card-images">
+                            <img src="https://i.ibb.co/7tSzM4tx/Penguins.jpg" alt="Placeholder Image">
+                        </div>
+                    </div>
+                    <div class="card-details">
+                        <h3>Photocard Title 3</h3>
+                        <p>Description for photocard 3</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="fullscreen-overlay" id="fullscreenOverlay">
+        <span class="close-button" onclick="closeFullscreen()">&times;</span>
+        <div class="fullscreen-card-container">
+            <div class="fullscreen-card" id="fullscreenCard">
+                <div class="fullscreen-face front">
+                    <img id="fullscreenImage" src="" alt="Fullscreen Photocard">
+                </div>
+                <div class="fullscreen-face back"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openFullscreen(card) {
+            const imgSrc = card.querySelector(".card-images img").src;
+            document.getElementById("fullscreenImage").src = imgSrc;
+            document.getElementById("fullscreenOverlay").style.display = "flex";
+        }
+
+        function closeFullscreen() {
+            document.getElementById("fullscreenOverlay").style.display = "none";
+            document.getElementById("fullscreenCard").classList.remove("flipped");
+        }
+
+        function toggleFlip() {
+            document.getElementById("fullscreenCard").classList.toggle("flipped");
+        }
+
+        document.getElementById("fullscreenOverlay").addEventListener("click", function (e) {
+            if (e.target === this) {
+                closeFullscreen();
+            }
+        });
+
+        document.getElementById("fullscreenCard").addEventListener("click", function (e) {
+            e.stopPropagation();
+            toggleFlip();
+        });
+    </script>
+</body>
+</html>
