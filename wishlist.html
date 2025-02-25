@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloom Your Album</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/wishlist.css">
+
+    <!-- Firebase CDN (compatibility mode for Firebase v9) -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase config -->
+    <script src="js/firebase.config.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about_members.html">About the Members</a></li>
+                <li><a href="collections/index.html">Collections</a></li>
+                <li><a href="account.html">My Account</a></li>
+                <li><a href="upload.html">Upload Photos</a></li>
+                <li><a href="wishlist.html">My Album</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="album">
+            <div class="album-header">
+                <h1>Bloom Your Album</h1>
+                <p>Let your photocard collection bloom and enchant, turning every card into a precious memory.</p>
+            </div>
+            
+            <!-- Album Creation -->
+            <div class="album-creation">
+                <input type="text" id="album-name" placeholder="Enter album name...">
+                <input type="text" id="album-cover" placeholder="Enter album cover URL (300x200)...">
+                <button onclick="createAlbum()">Create Album</button>
+            </div>
+
+            <!-- Search Bar for Adding Photocards with Suggestions -->
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Search photocards to add..." oninput="suggestPhotocards()">
+                <button onclick="searchPhotocards()">Search</button>
+                <div id="search-suggestions" class="search-suggestions"></div>
+            </div>
+            <div id="search-results"></div>
+
+            <!-- Album Display with Search -->
+            <div class="album-header your-albums-header">
+                <h2 contenteditable="true">Your Albums</h2>
+            </div>
+            <div class="album-search-bar">
+                <input type="text" id="album-search-input" placeholder="Search your albums...">
+                <button onclick="searchAlbums()">Search</button>
+            </div>
+            <div id="album-container">
+                <!-- Albums and their cards will be dynamically inserted here -->
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>© 2025 ZEROBASEONE Photocard Collection</p>
+    </footer>
+
+    <!-- Popup Modal for Albums -->
+    <div id="album-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">×</span>
+            <h2 id="modal-album-name"></h2>
+            <label>
+                <input type="checkbox" id="cards-only-toggle" onchange="toggleCardsOnly(this.checked, currentAlbumId)">
+                Show Cards Only
+            </label>
+            <button id="rearrange-button" class="rearrange-button" onclick="toggleRearrangeMode()" style="display: none;">Edit Order</button>
+            <div id="modal-card-container" class="modal-card-grid"></div>
+        </div>
+    </div>
+
+    <!-- Edit Album Modal -->
+    <div id="edit-album-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeEditModal()">×</span>
+            <h2>Edit Album</h2>
+            <form id="edit-album-form">
+                <input type="text" id="edit-album-name" placeholder="Enter new album name..." required>
+                <input type="text" id="edit-album-cover" placeholder="Enter new cover URL (300x200)...">
+                <button type="submit">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/wishlist.js"></script>
+</body>
+</html>

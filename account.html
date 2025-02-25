@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/account.css">
+
+    <!-- Firebase CDN (using 9.15.0 for consistency) -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+
+    <!-- Firebase config -->
+    <script src="js/firebase.config.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about_members.html">About the Members</a></li>
+                <li><a href="collections/index.html">Collections</a></li>
+                <li><a href="account.html">My Account</a></li>
+                <li><a href="upload.html">Upload Photos</a></li>
+                <li><a href="wishlist.html">My Album</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="account">
+            <h1>My Account</h1>
+            <p>Manage your profile and collections here.</p>
+
+            <!-- Profile Information -->
+            <div class="profile-info">
+                <h2>Profile Information</h2>
+                <label for="username">Username:</label>
+                <input type="text" id="username" value="User123" disabled>
+                <label for="email">Email:</label>
+                <input type="email" id="email" value="user123@example.com" disabled>
+                <button onclick="enableEdit()">Edit Profile</button>
+                <button onclick="promptSaveProfile()" style="display:none;">Save Changes</button>
+            </div>
+
+            <!-- Collection Stats -->
+            <div class="collection-stats">
+                <h2>Your Collection</h2>
+                <p>Total Photocards: <span id="photocard-count">Loading...</span></p>
+                <a href="collections/index.html">View Collections</a>
+            </div>
+
+            <!-- Account Settings -->
+            <div class="account-settings">
+                <h2>Account Settings</h2>
+                <button onclick="promptChangePassword()">Change Password</button>
+                <button onclick="promptDeleteAccount()" style="color: red;">Delete Account</button>
+            </div>
+
+            <!-- Activity Summary -->
+            <div class="activity-summary">
+                <h2>Recent Activity</h2>
+                <ul id="activity-list">
+                    <li>Loading activities...</li>
+                </ul>
+            </div>
+
+            <!-- Logout -->
+            <div class="logout">
+                <button onclick="promptLogout()">Log Out</button>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>© 2025 ZEROBASEONE Photocard Collection</p>
+    </footer>
+
+    <script>
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Load user data when the page loads
+        async function loadUserData() {
+            const user = auth.currentUser;
+            if (user) {
+                // Set email from Firebase Auth
+                document.getElementById('email').value = user.email;
+
+                // Fetch username from Firestore
+                try {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    if (userDoc.exists) {
+                        document.getElementById('username').value = userDoc.data().username || 'User123';
+                    }
+                } catch (error) {
+                    console.error('Error loading username:', error);
+                }
+            } else {
+                // Redirect to login if no user is signed in
+                window.location.href = 'login.html';
+            }
+        }
+
+        function enableEdit() {
+            document.getElementById('username').disabled = false;
+            document.getElementById('email').disabled = false;
+            document.querySelector('button[onclick="enableEdit()"]').style.display = 'none';
+            document.querySelector('button[onclick="promptSaveProfile()"]').style.display = 'inline';
+        }
+
+        async function promptSaveProfile() {
+            const user = auth.currentUser;
+            if (!user) {
+                alert('You must be logged in to save changes.');
+                return;
+            }
+
+            const newUsername = document.getElementById('username').value.trim();
+            const newEmail = document.getElementById('email').value.trim();
+
+            if (confirm('Are you sure you want to save changes to your profile?')) {
+                try {
+                    // Update email in Firebase Authentication
+                    if (newEmail !== user.email) {
+                        await user.updateEmail(newEmail);
+                        alert('Email updated successfully!');
+                    }
+
+                    // Update username in Firestore
+                    await db.collection('users').doc(user.uid).set({
+                        username: newUsername,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+
+                    alert('Profile saved successfully!');
+                    document.getElementById('username').disabled = true;
+                    document.getElementById('email').disabled = true;
+                    document.querySelector('button[onclick="enableEdit()"]').style.display = 'inline';
+                    document.querySelector('button[onclick="promptSaveProfile()"]').style.display = 'none';
+                } catch (error) {
+                    console.error('Error saving profile:', error);
+                    alert('Failed to save profile: ' + error.message);
+                }
+            } else {
+                alert('Changes not saved.');
+            }
+        }
+
+        function promptChangePassword() {
+            if (confirm('Do you want to proceed with changing your password?')) {
+                alert('Change password feature coming soon!');
+            }
+        }
+
+        function promptDeleteAccount() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                alert('Account deletion requested.');
+            }
+        }
+
+        function promptLogout() {
+            if (confirm('Are you sure you want to log out?')) {
+                auth.signOut()
+                    .then(() => {
+                        alert('You have been logged out.');
+                        window.location.href = 'login.html';
+                    })
+                    .catch((error) => {
+                        console.error('Logout error:', error);
+                        alert('An error occurred while logging out. Please try again.');
+                    });
+            }
+        }
+
+        async function fetchPhotocardCount() {
+            try {
+                const snapshot = await db.collection('photocards').get();
+                document.getElementById('photocard-count').textContent = snapshot.size;
+            } catch (error) {
+                console.error('Error fetching photocard count:', error);
+                document.getElementById('photocard-count').textContent = 'Unavailable';
+            }
+        }
+
+        async function fetchRecentActivities() {
+            try {
+                const snapshot = await db.collection('activities')
+                    .orderBy('timestamp', 'desc')
+                    .limit(5)
+                    .get();
+                const activityList = document.getElementById('activity-list');
+                activityList.innerHTML = '';
+
+                if (snapshot.empty) {
+                    activityList.innerHTML = '<li>No recent activity.</li>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const activity = doc.data();
+                    const date = activity.timestamp && typeof activity.timestamp.toDate === 'function'
+                        ? activity.timestamp.toDate().toLocaleDateString()
+                        : 'Unknown date';
+                    const li = document.createElement('li');
+                    li.textContent = `${activity.description} - ${date}`;
+                    activityList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error fetching activities:', error);
+                document.getElementById('activity-list').innerHTML = '<li>Error loading activities.</li>';
+            }
+        }
+
+        window.onload = function() {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    loadUserData();
+                    fetchPhotocardCount();
+                    fetchRecentActivities();
+                } else {
+                    window.location.href = 'login.html'; // Redirect if not logged in
+                }
+            });
+        };
+    </script>
+</body>
+</html>

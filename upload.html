@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Photos</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/upload.css">
+
+    <!-- Firebase CDN (using 9.15.0) -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about_members.html">About the Members</a></li>
+                <li><a href="collections/index.html">Collections</a></li>
+                <li><a href="account.html">My Account</a></li>
+                <li><a href="upload.html">Upload Photos</a></li>
+                <li><a href="wishlist.html">My Album</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div class="main-content">
+        <div class="container">
+            <h1>Upload Photocard</h1>
+            <div class="preview" id="preview-section">
+                <p>No image uploaded yet.</p>
+            </div>
+
+            <label for="front-image-url">Front Image URL:</label>
+            <input type="url" id="front-image-url" placeholder="Enter front image URL here" />
+
+            <label for="back-image-url">Back Image URL:</label>
+            <input type="url" id="back-image-url" placeholder="Enter back image URL here" />
+
+            <label for="member">Select Member:</label>
+            <select id="member">
+                <option value="">Choose Member</option>
+                <option value="Kim Jiwoong">Kim Jiwoong</option>
+                <option value="Zhang Hao">Zhang Hao</option>
+                <option value="Sung Hanbin">Sung Hanbin</option>
+                <option value="Seok Matthew">Seok Matthew</option>
+                <option value="Kim Taerae">Kim Taerae</option>
+                <option value="Ricky">Ricky</option>
+                <option value="Kim Gyuvin">Kim Gyuvin</option>
+                <option value="Park Gunwook">Park Gunwook</option>
+                <option value="Han Yujin">Han Yujin</option>
+                <option value="Unit">Unit</option>
+            </select>
+
+            <label for="album">Select Album:</label>
+            <select id="album">
+                <option value="">Choose Album</option>
+                <option value="Youth in the Shade">Youth in the Shade</option>
+                <option value="Melting Point">Melting Point</option>
+                <option value="Yura Yura">Yura Yura</option>
+                <option value="You Had Me at Hello">You Had Me at Hello</option>
+                <option value="Cinema Paradise">Cinema Paradise</option>
+                <option value="Prezent">Prezent</option>
+                <option value="Blue Paradise">Blue Paradise</option>
+                <option value="Others">Others</option>
+            </select>
+
+            <label for="type">Select Type:</label>
+            <select id="type">
+                <option value="">Choose Type</option>
+                <option value="Official">Official</option>
+                <option value="Preorder Benefit">Preorder Benefit</option>
+                <option value="Lucky Draw">Lucky Draw</option>
+                <option value="Others">Others</option>
+            </select>
+
+            <label for="details">Details:</label>
+            <textarea id="details" placeholder="Enter additional details here"></textarea>
+
+            <button onclick="confirmPhotocardDetails()">Add Photocard</button>
+
+            <div id="status-message" class="status-message"></div>
+        </div>
+    </div>
+
+    <!-- Modal for confirmation -->
+    <div id="confirmation-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Confirm Photocard Details</h3>
+            <p id="modal-member"></p>
+            <p id="modal-album"></p>
+            <p id="modal-type"></p>
+            <p id="modal-details"></p>
+            <h4>Photocard Preview:</h4>
+            <div class="preview">
+                <div class="card" id="flip-card">
+                    <div class="card-face card-front">
+                        <img id="modal-front-image" src="" alt="Front Photocard Preview">
+                    </div>
+                    <div class="card-face card-back">
+                        <img id="modal-back-image" src="" alt="Back Photocard Preview">
+                    </div>
+                </div>
+            </div>
+            <button onclick="submitPhotocard()">Confirm</button>
+            <button onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 ZEROBASEONE Photocard Collection</p>
+    </footer>
+
+    <script src="js/firebase.config.js"></script>
+    <script>
+        const db = firebase.firestore();
+
+        function confirmPhotocardDetails() {
+            const frontImageUrl = document.getElementById('front-image-url').value.trim();
+            const backImageUrl = document.getElementById('back-image-url').value.trim();
+            const member = document.getElementById('member').value;
+            const album = document.getElementById('album').value;
+            const type = document.getElementById('type').value;
+            const details = document.getElementById('details').value.trim();
+
+            if (!frontImageUrl || !member || !album || !type) {
+                document.getElementById('status-message').textContent = 'Please fill in all required fields (Front Image URL, Member, Album, Type).';
+                return;
+            }
+
+            document.getElementById('modal-member').textContent = `Member: ${member}`;
+            document.getElementById('modal-album').textContent = `Album: ${album}`;
+            document.getElementById('modal-type').textContent = `Type: ${type}`;
+            document.getElementById('modal-details').textContent = `Details: ${details || 'None'}`;
+            document.getElementById('modal-front-image').src = frontImageUrl;
+            document.getElementById('modal-back-image').src = backImageUrl || '';
+
+            document.getElementById('confirmation-modal').style.display = 'block';
+        }
+
+        async function submitPhotocard() {
+            const frontImageUrl = document.getElementById('front-image-url').value.trim();
+            const backImageUrl = document.getElementById('back-image-url').value.trim();
+            const member = document.getElementById('member').value;
+            const album = document.getElementById('album').value;
+            const type = document.getElementById('type').value;
+            const details = document.getElementById('details').value.trim();
+
+            try {
+                const docRef = await db.collection('photocards').add({
+                    frontImageUrl,
+                    backImageUrl: backImageUrl || null,
+                    member,
+                    album,
+                    type,
+                    details: details || '',
+                    isFavorite: false,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                await db.collection('activities').add({
+                    type: 'upload',
+                    description: `Uploaded photocard: ${member} - ${album}`,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    cardId: docRef.id
+                });
+
+                document.getElementById('status-message').textContent = 'Photocard uploaded successfully!';
+                closeModal();
+                resetForm();
+            } catch (error) {
+                console.error('Error uploading photocard:', error);
+                document.getElementById('status-message').textContent = 'Error uploading photocard. Please try again.';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('confirmation-modal').style.display = 'none';
+            document.getElementById('status-message').textContent = '';
+        }
+
+        function resetForm() {
+            document.getElementById('front-image-url').value = '';
+            document.getElementById('back-image-url').value = '';
+            document.getElementById('member').value = '';
+            document.getElementById('album').value = '';
+            document.getElementById('type').value = '';
+            document.getElementById('details').value = '';
+            document.getElementById('preview-section').innerHTML = '<p>No image uploaded yet.</p>';
+        }
+
+        document.getElementById('front-image-url').addEventListener('input', function() {
+            const url = this.value.trim();
+            const preview = document.getElementById('preview-section');
+            if (url) {
+                preview.innerHTML = `<img src="${url}" alt="Front Preview" style="max-width: 200px;">`;
+            } else {
+                preview.innerHTML = '<p>No image uploaded yet.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
