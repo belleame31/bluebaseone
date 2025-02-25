@@ -1,0 +1,58 @@
+/* Global styles */
+body {
+    font-family: 'Open Sans', sans-serif;
+    background-color: #f8f8f8;
+    color: #333;
+}
+
+/* Navigation styling */
+header {
+    background-color: #fff;
+    border-bottom: 1px solid #e7e7e7;
+}
+
+nav {
+    display: flex; /* Use flexbox for the navigation */
+    justify-content: center; /* Center the navigation items */
+    padding: 1em; /* Add padding for spacing */
+}
+
+nav ul {
+    list-style: none; /* Remove default list styles */
+    display: flex; /* Use flexbox for the list */
+    padding: 0; /* Remove default padding */
+    margin: 0; /* Remove default margin */
+}
+
+nav ul li {
+    margin: 0 15px; /* Space between items */
+}
+
+nav ul li a {
+    text-decoration: none; /* Remove underline */
+    color: #333; /* Link color */
+    padding: 0.5em 1em; /* Add padding for clickable area */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s; /* Smooth background color transition */
+}
+
+/* Hover effect for links */
+nav ul li a:hover {
+    background-color: #e7e7e7; /* Change background on hover */
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    nav {
+        flex-direction: column; /* Stack items vertically on small screens */
+        align-items: center; /* Center items */
+    }
+
+    nav ul {
+        flex-direction: column; /* Stack list items vertically */
+    }
+
+    nav ul li {
+        margin: 10px 0; /* Space between items when stacked */
+    }
+}

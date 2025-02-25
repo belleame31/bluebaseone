@@ -1,0 +1,13 @@
+/* Member section styling */
+.members {
+    padding: 20px;
+}
+
+.members .member {
+    margin-bottom: 20px;
+}
+
+.members .member h2 {
+    font-size: 1.5em;
+    margin-bottom: 5px;
+}

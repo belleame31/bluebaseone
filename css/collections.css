@@ -1,0 +1,409 @@
+/* General body styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+}
+
+/* Main content styles */
+main {
+    flex-grow: 1;
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Catalog styles */
+.catalog {
+    padding-top: 20px;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.catalog h2 {
+    text-align: center;
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 40px;
+}
+
+/* Controls styling */
+.controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.sort-dropdown,
+.search-bar {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 200px;
+    margin: 5px;
+}
+
+.sort-dropdown select,
+.search-bar input {
+    margin-left: 10px;
+    padding: 0.5em;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Show Favorites Button */
+.show-favorites-button {
+    display: block;
+    margin: 10px auto 20px; /* Center below controls */
+    padding: 10px 20px;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    color: #262626;
+    background-color: #fff;
+    border: 1px solid #dbdbdb;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.show-favorites-button:hover {
+    background-color: #fafafa;
+    border-color: #b2b2b2;
+}
+
+.show-favorites-button:active {
+    transform: scale(0.98);
+    background-color: #efefef;
+}
+
+.show-favorites-button.active {
+    background-color: #ed4956;
+    color: #fff;
+    border-color: #ed4956;
+}
+
+.show-favorites-button.active:hover {
+    background-color: #c13545;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .sort-dropdown,
+    .search-bar {
+        width: 100%;
+    }
+
+    .show-favorites-button {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+/* Card grid layout */
+.cards {
+    display: grid;
+    gap: 5px;
+    justify-content: center;
+    margin-top: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* Ensure at least 2 columns */
+@media (max-width: 600px) {
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Ensure a maximum of 5 columns */
+@media (min-width: 1200px) {
+    .cards {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* Card container */
+.card {
+    cursor: pointer;
+    width: 200px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border: 2px solid #e0e0e0;
+    padding-top: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Card face styles */
+.card-face {
+    width: 100%;
+    height: 250px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.card-images {
+    width: 100%;
+    height: 250px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #e0e0e0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f9f9f9;
+}
+
+.card-images img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-images img:hover {
+    transform: scale(1.05);
+}
+
+/* Card details section */
+.card-details {
+    padding: 20px;
+    color: rgb(83, 81, 81);
+    text-align: center;
+    width: 100%;
+    margin-top: 0px;
+    background-color: rgba(255, 255, 255, 0);
+}
+
+.card-details h3 {
+    font-size: 18px;
+    color: rgb(90, 90, 90);
+    margin: 0 0 5px;
+    margin-top: 11px;
+}
+
+.card-details p {
+    font-size: 14px;
+    color: rgb(92, 87, 87);
+    margin: 0 0 5px !important;
+}
+
+/* Fullscreen Flip Card Modal Styles */
+.flipcard-modal {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
+
+.flip-card {
+    width: 300px;
+    height: 450px;
+    perspective: 1000px;
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.flip-card:hover .flip-card-inner {
+    transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 12px;
+}
+
+.flip-card-front {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.flip-card-back {
+    background-color: #0044cc;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: rotateY(180deg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.close-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 32px;
+    color: #fff;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.position-controls {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.position-controls label {
+    margin: 10px 0;
+}
+
+.position-controls input[type="range"] {
+    width: 200px;
+    margin-bottom: 10px;
+}
+
+/* Button container */
+.card-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 10px 0;
+}
+
+/* Instagram-style Favorite Button */
+.favorite-button {
+    background: #fff; /* White background */
+    border: 1px solid #dbdbdb; /* Light gray border */
+    border-radius: 50%; /* Makes it circular */
+    padding: 8px;
+    cursor: pointer;
+    position: relative;
+    width: 30px;
+    height: 30px;
+    outline: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.favorite-button::before {
+    content: '\2661'; /* Outline heart (♡) for unliked state */
+    font-size: 24px;
+    color: #262626; /* Instagram dark gray */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.favorite-button.liked::before {
+    content: '\2665'; /* Filled heart (♥) for liked state */
+    color: #ed4956; /* Instagram red */
+    animation: heartPulse 0.3s ease; /* Subtle pulse animation */
+}
+
+.favorite-button:hover {
+    background: #fafafa; /* Light gray hover state */
+}
+
+.favorite-button:hover:not(.liked)::before {
+    color: #8e8e8e; /* Lighter gray on hover */
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.favorite-button.liked:hover::before {
+    color: #c13545; /* Darker red on hover */
+}
+
+.favorite-button:active {
+    transform: scale(0.95); /* Slightly smaller when clicked */
+}
+
+/* Subtle pulse animation for liked state */
+@keyframes heartPulse {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.1); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Enhanced Delete Button */
+.delete-button {
+    background: #fff; /* White background */
+    border: 1px solid #dbdbdb; /* Light gray border */
+    border-radius: 50%; /* Makes it circular */
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    width: 30px;
+    height: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.delete-button::before {
+    content: '\1F5D1'; /* Trash can icon */
+    font-size: 20px;
+    color: #666;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.2s ease;
+}
+
+.delete-button:hover {
+    background: #fafafa; /* Light gray hover state */
+}
+
+.delete-button:hover::before {
+    color: #dc3545; /* Red on hover */
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.delete-button:active {
+    transform: scale(0.95); /* Slightly smaller when clicked */
+}

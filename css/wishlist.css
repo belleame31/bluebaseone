@@ -1,0 +1,551 @@
+body {
+    background-image: url('');
+    background-size: cover; /* Cover the entire background */
+    background-position: center; /* Center the background */
+    background-repeat: no-repeat; /* Prevent repeating the background */
+}
+
+Album {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.album-header {
+    background-color: transparent; /* Background removed for Bloom Your Album */
+    padding: 20px;
+    border-radius: 10px; /* Rounded corners for the rectangle */
+    margin-bottom: 20px;
+    text-align: center; /* Center the text */
+}
+
+.album-header h1 {
+    color: #007bff; /* Blue for heading to match the design theme */
+    margin-bottom: 10px;
+    font-size: 2rem;
+}
+
+.album-header p {
+    color: #6c757d; /* Gray for paragraph text */
+    font-size: 1.1rem;
+    margin: 0;
+    background-color: transparent; /* Explicitly no background */
+}
+
+.your-albums-header {
+    background-color: transparent; /* Background removed for Your Albums */
+    padding: 15px 20px;
+    border-radius: 10px; /* Rounded corners */
+    margin-bottom: 15px;
+    text-align: center; /* Center the text */
+}
+
+.your-albums-header h2 {
+    color: #007bff; /* Blue for heading to match the design theme */
+    margin: 0;
+    font-size: 1.5rem;
+    outline: none; /* Remove outline when focused */
+    cursor: text; /* Indicate it's editable */
+}
+
+.your-albums-header h2:focus {
+    border: 1px solid #007bff; /* Add a subtle border when editing */
+    border-radius: 4px;
+    padding: 2px 5px; /* Add padding for better appearance */
+    background-color: #fff; /* White background when editing, kept as exception */
+}
+
+.album-creation {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#album-name, #album-cover, #edit-album-name, #edit-album-cover {
+    padding: 8px;
+    width: 45%;
+    max-width: 200px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: transparent; /* Ensure inputs have no background */
+}
+
+.album-creation button, #edit-album-form button {
+    padding: 8px 15px;
+    background-color: #A3BFFA; /* Pastel blue preserved for buttons */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.album-creation button:hover, #edit-album-form button:hover {
+    background-color: #7F9CF5; /* Slightly darker pastel blue on hover */
+}
+
+.rearrange-button {
+    padding: 8px 15px;
+    background-color: #A3BFFA; /* Pastel blue preserved for button */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 10px;
+}
+
+.rearrange-button:hover {
+    background-color: #7F9CF5; /* Slightly darker pastel blue */
+}
+
+.edit-logo {
+    font-size: 20px;
+    color: #ffaa00;
+    cursor: pointer;
+    margin-left: 10px;
+    vertical-align: middle;
+    background-color: transparent; /* No background for icon */
+}
+
+.edit-logo:hover {
+    color: #cc8800;
+}
+
+.search-bar {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    position: relative;
+}
+
+#search-input {
+    padding: 8px;
+    width: 70%;
+    max-width: 300px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: transparent; /* Ensure search input has no background */
+}
+
+.search-bar button {
+    padding: 8px 15px;
+    background-color: #A3BFFA; /* Pastel blue preserved for button */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.search-bar button:hover {
+    background-color: #7F9CF5; /* Slightly darker pastel blue */
+}
+
+.album-search-bar {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#album-search-input {
+    padding: 8px;
+    width: 70%;
+    max-width: 300px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: transparent; /* Ensure album search input has no background */
+}
+
+.album-search-bar button {
+    padding: 8px 15px;
+    background-color: #A3BFFA; /* Pastel blue preserved for button */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.album-search-bar button:hover {
+    background-color: #7F9CF5; /* Slightly darker pastel blue */
+}
+
+#search-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+#album-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Extra small screens (e.g., mobile phones, up to 576px) */
+@media (max-width: 576px) {
+    #album-container {
+        grid-template-columns: 1fr; /* 1 album per row */
+    }
+}
+
+/* Small screens (e.g., larger phones, 577px to 768px) */
+@media (min-width: 577px) and (max-width: 768px) {
+    #album-container {
+        grid-template-columns: repeat(2, 1fr); /* 2 albums per row */
+    }
+}
+
+/* Medium screens (e.g., tablets, 769px to 992px) */
+@media (min-width: 769px) and (max-width: 992px) {
+    #album-container {
+        grid-template-columns: repeat(3, 1fr); /* 3 albums per row */
+    }
+}
+
+/* Large screens (e.g., desktops, 993px and up) */
+@media (min-width: 993px) {
+    #album-container {
+        grid-template-columns: repeat(4, 1fr); /* 4 albums per row */
+    }
+}
+
+.search-result {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: transparent; /* Removed background color */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.search-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+.album-cover {
+    width: 300px; /* Rectangular width */
+    height: 200px; /* Rectangular height */
+    object-fit: cover;
+    cursor: pointer;
+    border-radius: 10px; /* Rounded borders */
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+button {
+    background-color: #A3BFFA; /* Pastel blue preserved for buttons */
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+button:hover {
+    background-color: #7F9CF5; /* Slightly darker pastel blue */
+}
+
+.move-up, .move-down {
+    padding: 5px 10px;
+    background-color: #A3BFFA; /* Pastel blue preserved for buttons */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin: 0 5px;
+}
+
+.move-up:hover, .move-down:hover {
+    background-color: #7F9CF5; /* Slightly darker pastel blue */
+}
+
+.album-section {
+    text-align: center;
+    position: relative;
+}
+
+.album-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 5px;
+    background-color: transparent; /* Ensure no background */
+}
+
+select {
+    margin-top: 5px;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: transparent; /* No background for select */
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: transparent; /* Removed background color */
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 1200px;
+    border-radius: 5px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: transparent; /* No background */
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+}
+
+#toggle-mode {
+    margin-top: 10px;
+    background-color: #A3BFFA; /* Pastel blue preserved for button */
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+#toggle-mode:hover {
+    background-color: #7F9CF5; /* Slightly darker pastel blue */
+}
+
+.modal-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.modal-card-only .modal-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* Ensure at least 2 cards per row */
+    grid-auto-rows: auto; /* Rows adjust to content */
+    gap: 15px; /* Space between cards */
+    justify-content: center; /* Center the grid horizontally */
+    width: 100%;
+    max-width: 450px; /* 2 × 210px + 2 × 15px gaps = 450px */
+    max-height: 90vh; /* Limit height to viewport */
+    overflow-y: auto; /* Scroll if needed */
+    margin: 0 auto; /* Center the grid within the modal */
+}
+
+@media (min-width: 675px) {
+    .modal-card-only .modal-card-grid {
+        grid-template-columns: repeat(3, 210px); /* 3 cards per row on wider screens */
+        width: 660px; /* 3 × 210px + 2 × 15px gaps */
+    }
+}
+
+.modal-card-item {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: transparent; /* Removed background color */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-card-item.modal-card-only {
+    padding: 0;
+    border: none;
+    background: none;
+}
+
+.modal-card-item.modal-card-only .card-details,
+.modal-card-item.modal-card-only .card-controls {
+    display: none !important; /* Ensure no details or controls are visible in cards-only mode */
+}
+
+.rearrange-mode .card-details {
+    display: none !important; /* Ensure details are hidden in rearrange mode when in cards-only mode */
+}
+
+.card-controls {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    display: none; /* Hidden by default, shown only in rearrange mode */
+}
+
+.rearrange-mode .card-controls {
+    display: flex !important; /* Ensure controls are visible in rearrange mode */
+}
+
+.flip-card {
+    width: 100%; /* Full width of the grid cell */
+    height: 0;
+    padding-bottom: 142.86%; /* Maintain 210:300 aspect ratio */
+    perspective: 1000px;
+    position: relative;
+    max-width: 210px; /* Cap card width */
+}
+
+.flip-card-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.flip-card-front {
+    background-color: #007bff; /* Fallback color */
+}
+
+.flip-card-back {
+    background-color: #28a745; /* Fallback color */
+    transform: rotateY(180deg);
+}
+
+.modal-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensure image covers the card */
+    border-radius: 10px;
+}
+
+/* Edit Album Modal Styles */
+#edit-album-modal .modal-content {
+    max-width: 400px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: transparent; /* Match other modals */
+}
+
+#edit-album-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#edit-album-form button {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    background-color: #A3BFFA; /* Pastel blue preserved for button */
+}
+
+#edit-album-form button:hover {
+    background-color: #7F9CF5; /* Slightly darker pastel blue */
+}
+
+/* Search Suggestions Styles */
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: transparent; /* Removed background color */
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 10;
+    display: none;
+}
+
+.suggestion-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    background-color: transparent; /* No background */
+}
+
+.suggestion-item:hover {
+    background-color: transparent; /* Remove hover background */
+}
+
+.suggestion-image {
+    width: 50px;
+    height: 70px; /* Maintain aspect ratio for thumbnails */
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.suggestion-details {
+    flex-grow: 1;
+    font-size: 0.9rem;
+    color: #333;
+    background-color: transparent; /* No background */
+}
+
+.suggestion-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.suggestion-details p {
+    margin: 2px 0;
+    font-size: 0.8rem;
+    color: #6c757d;
+    background-color: transparent; /* No background */
+}
+
+.suggestion-item button {
+    padding: 5px 10px;
+    background-color: #A3BFFA; /* Pastel blue preserved for button */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    align-self: flex-start;
+    margin-top: 5px;
+}
+
+.suggestion-item button:hover {
+    background-color: #7F9CF5; /* Slightly darker pastel blue */
+}
