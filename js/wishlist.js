@@ -1,614 +1,279 @@
+// Ensure Firebase is initialized properly
+if (typeof firebase === 'undefined') {
+    console.error('Firebase is not initialized. Check firebase.config.js.');
+    document.getElementById('page-title').textContent = 'Error: Firebase Not Loaded';
+    document.getElementById('catalog-heading').textContent = 'Error: Firebase Not Loaded';
+} else {
+    console.log('Firebase initialized successfully.');
+}
+
 const db = firebase.firestore();
-let currentAlbumId = null; // Track the current album ID
-let isRearranging = false; // Track rearrange mode
+const auth = firebase.auth();
+let photocards = [];
+let showFavoritesMode = false;
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadAlbums();
-    loadSuggestedPhotocards(); // Preload suggested photocards for suggestions
-    
-    // Load and initialize the editable "Your Albums" header
-    const yourAlbumsHeader = document.querySelector('.your-albums-header h2');
-    const savedText = localStorage.getItem('yourAlbumsText');
-    if (savedText) {
-        yourAlbumsHeader.textContent = savedText;
-    }
+// Function to update the title and heading with the user's username
+async function updateUserCatalogue() {
+    const user = auth.currentUser;
+    console.log('Current user:', user);
+    if (user) {
+        try {
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Firestore request timed out')), 5000)
+            );
+            const userDocPromise = db.collection('users').doc(user.uid).get();
+            console.log('Fetching username for UID:', user.uid);
+            const userDoc = await Promise.race([userDocPromise, timeoutPromise]);
+            console.log('User doc data:', userDoc.data());
 
-    // Save text to localStorage when edited
-    yourAlbumsHeader.addEventListener('input', () => {
-        localStorage.setItem('yourAlbumsText', yourAlbumsHeader.textContent);
-    });
-});
-
-async function createAlbum() {
-    const albumName = document.getElementById('album-name').value.trim();
-    const albumCover = document.getElementById('album-cover').value.trim();
-    if (!albumName) {
-        alert('Please enter an album name.');
-        return;
-    }
-
-    try {
-        const albumRef = await db.collection('userAlbums').where('name', '==', albumName).get();
-        if (!albumRef.empty) {
-            alert(`Album "${albumName}" already exists!`);
-            return;
+            const username = userDoc.exists && userDoc.data().username ? userDoc.data().username : 'User';
+            document.getElementById('page-title').textContent = `${username} Catalogue`;
+            document.getElementById('catalog-heading').textContent = `${username} Catalogue`;
+            console.log('Title updated to:', `${username} Catalogue`);
+        } catch (error) {
+            console.error('Error fetching username from Firestore:', error);
+            document.getElementById('page-title').textContent = 'User Catalogue';
+            document.getElementById('catalog-heading').textContent = 'User Catalogue';
+            alert('Unable to load username due to a network issue. Using default title.');
         }
-
-        await db.collection('userAlbums').add({
-            name: albumName,
-            cover: albumCover || 'https://via.placeholder.com/300x200', // Default rectangular cover
-            cards: []
-        });
-        alert(`Album "${albumName}" created!`);
-        loadAlbums();
-    } catch (error) {
-        console.error('Error creating album:', error.message, error.code, error.stack);
-        alert('Failed to create album.');
+    } else {
+        console.log('No user signed in, redirecting to login...');
+        document.getElementById('page-title').textContent = 'Photocard Catalogue';
+        document.getElementById('catalog-heading').textContent = 'Photocard Catalogue';
+        window.location.href = '../login.html';
     }
-    document.getElementById('album-name').value = '';
-    document.getElementById('album-cover').value = '';
 }
 
-async function loadAlbums(query = '') {
-    const container = document.getElementById('album-container');
-    container.innerHTML = '';
-
+// Load Photocards from Firebase
+async function loadCards() {
+    const photocardsCollection = db.collection('photocards');
     try {
-        console.log('Attempting to fetch albums from Firestore...');
-        const snapshot = await db.collection('userAlbums').get();
-        console.log('Snapshot received:', snapshot);
+        console.log('Fetching photocards...');
+        const snapshot = await photocardsCollection.get();
+        photocards = [];
 
         if (snapshot.empty) {
-            console.log('No albums found in userAlbums collection.');
-            container.innerHTML = '<p>You have no albums. Create one above!</p>';
+            console.log('No cards found!');
+            document.getElementById('card-container').innerHTML = '<p>No cards available at the moment.</p>';
             return;
         }
 
-        let hasMatches = false;
         snapshot.forEach(doc => {
-            const album = doc.data();
-            console.log('Album data:', album);
-            const cards = Array.isArray(album.cards) ? album.cards : [];
-
-            const albumMatches = !query || 
-                album.name.toLowerCase().includes(query) || 
-                cards.some(card => 
-                    (card.name && card.name.toLowerCase().includes(query)) ||
-                    (card.member && card.member.toLowerCase().includes(query)) ||
-                    (card.album && card.album.toLowerCase().includes(query)) ||
-                    (card.type && card.type.toLowerCase().includes(query)) ||
-                    (card.details && card.details.toLowerCase().includes(query))
-                );
-
-            if (albumMatches) {
-                hasMatches = true;
-                const albumDiv = document.createElement('div');
-                albumDiv.className = 'album-section';
-                albumDiv.innerHTML = `
-                    <img src="${album.cover}" alt="${album.name} cover" class="album-cover" onclick="showAlbumPopup('${doc.id}', '${album.name}')">
-                    <div class="album-info">
-                        <h3>${album.name}</h3>
-                        <span class="edit-logo" onclick="showEditModal('${doc.id}', '${album.name}', '${album.cover}')">✎</span>
-                    </div>
-                `;
-                container.appendChild(albumDiv);
-            }
-        });
-
-        if (!hasMatches && query) {
-            container.innerHTML = '<p>No albums match your search.</p>';
-        }
-    } catch (error) {
-        console.error('Detailed error loading albums:', error.message, error.code, error.stack);
-        container.innerHTML = '<p>Error loading albums: ' + error.message + '</p>';
-    }
-}
-
-async function removeFromAlbum(albumId, index) {
-    try {
-        const albumRef = db.collection('userAlbums').doc(albumId);
-        const albumDoc = await albumRef.get();
-        const album = albumDoc.data();
-        const cards = Array.isArray(album.cards) ? album.cards : [];
-        cards.splice(index, 1);
-
-        if (cards.length === 0) {
-            await albumRef.delete();
-        } else {
-            await albumRef.update({ cards: cards });
-        }
-        loadAlbums(document.getElementById('album-search-input').value.toLowerCase());
-    } catch (error) {
-        console.error('Error removing card from album:', error.message, error.code, error.stack);
-        alert('Failed to remove card.');
-    }
-}
-
-async function searchPhotocards() {
-    const query = document.getElementById('search-input').value.toLowerCase();
-    const resultsContainer = document.getElementById('search-results');
-    resultsContainer.innerHTML = '';
-
-    try {
-        const snapshot = await db.collection('photocards').get();
-        if (snapshot.empty) {
-            resultsContainer.innerHTML = '<p>No photocards available.</p>';
-            return;
-        }
-
-        const photocards = [];
-        snapshot.forEach(doc => {
-            const card = doc.data();
+            let card = doc.data();
             card.id = doc.id;
             photocards.push(card);
         });
 
-        const filteredCards = photocards.filter(card => 
-            (card.member && card.member.toLowerCase().includes(query)) ||
-            (card.album && card.album.toLowerCase().includes(query)) ||
-            (card.type && card.type.toLowerCase().includes(query)) ||
-            (card.details && card.details.toLowerCase().includes(query))
-        );
+        sortByNewest(); // Sort by newest after loading
+    } catch (error) {
+        console.error('Error fetching photocards:', error);
+        document.getElementById('card-container').innerHTML = '<p>Error loading cards.</p>';
+    }
+}
 
-        if (filteredCards.length === 0) {
-            resultsContainer.innerHTML = '<p>No photocards found.</p>';
-            return;
-        }
+// Display Cards in the catalog
+function displayCards(cards) {
+    const cardContainer = document.getElementById('card-container');
+    cardContainer.innerHTML = '';
 
-        const albumSnapshot = await db.collection('userAlbums').get();
-        console.log('Albums for dropdown:', albumSnapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name })));
-        const albumOptions = albumSnapshot.docs.map(doc => 
-            `<option value="${doc.id}">${doc.data().name}</option>`
-        ).join('');
+    cards.forEach(card => {
+        const cardElement = document.createElement('div');
+        cardElement.classList.add('card');
+        cardElement.innerHTML = `
+            <div class="card-images flip-card">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front" style="background-image: url('${card.frontImageUrl}')"></div>
+                    <div class="flip-card-back" style="background-image: url('${card.backImageUrl}')"></div>
+                </div>
+            </div>
+            <div class="card-details">
+                <h3>${card.member}</h3>
+                <p><strong>Album:</strong> ${card.album}</p>
+                <p><strong>Type:</strong> ${card.type}</p>
+                <p><strong>Details:</strong> ${card.details}</p>
+                <div class="card-actions">
+                    <button class="favorite-button ${card.isFavorite ? 'liked' : ''}" 
+                            onclick="toggleFavorite(event, '${card.id}')" 
+                            aria-label="Favorite">
+                    </button>
+                    <button class="delete-button" 
+                            onclick="deleteCard(event, '${card.id}')" 
+                            aria-label="Delete">
+                    </button>
+                </div>
+            </div>
+        `;
 
-        filteredCards.forEach(card => {
-            const name = `${card.member} - ${card.album}`;
-            const result = document.createElement('div');
-            result.className = 'search-result';
-            result.innerHTML = `
-                <img src="${card.frontImageUrl}" alt="${name}" class="search-image">
-                <h3>${name}</h3>
-                <p>Member: ${card.member}</p>
-                <p>Album: ${card.album}</p>
-                <p>Type: ${card.type}</p>
-                <p>Details: ${card.details}</p>
-                <select id="album-select-${card.id}">
-                    ${albumOptions || '<option value="">No albums available</option>'}
-                </select>
-                <button onclick="addToAlbum('${name}', '${card.member}', '${card.album}', '${card.type}', '${card.frontImageUrl}', '${card.backImageUrl || 'https://via.placeholder.com/150'}', '${card.details}', document.getElementById('album-select-${card.id}').value)">Add to Album</button>
-            `;
-            resultsContainer.appendChild(result);
+        // Add flip on click/tap
+        const flipCardInner = cardElement.querySelector('.flip-card-inner');
+        cardElement.querySelector('.flip-card').addEventListener('click', (e) => {
+            e.stopPropagation();
+            flipCardInner.classList.toggle('flipped');
         });
-    } catch (error) {
-        console.error('Error fetching photocards:', error.message, error.code, error.stack);
-        resultsContainer.innerHTML = '<p>Error loading photocards: ' + error.message + '</p>';
-    }
-}
 
-async function addToAlbum(name, member, album, type, frontImage, backImage, details, albumId) {
-    console.log('Adding to album:', { name, member, album, type, frontImage, backImage, details, albumId });
-    if (!albumId) {
-        alert('Please create an album first or select a valid album!');
-        return;
-    }
-
-    try {
-        const albumRef = db.collection('userAlbums').doc(albumId);
-        console.log('Fetching album with ID:', albumId);
-        const albumDoc = await albumRef.get();
-        if (!albumDoc.exists) {
-            console.log('Album does not exist:', albumId);
-            alert('Selected album no longer exists!');
-            return;
-        }
-
-        const albumData = albumDoc.data();
-        console.log('Album data fetched:', albumData);
-        const cards = Array.isArray(albumData.cards) ? [...albumData.cards] : [];
-        const newItem = { name, member, album, type, frontImage, backImage, details };
-        console.log('New item to add:', newItem);
-
-        if (!cards.some(item => item.name === name)) {
-            cards.push(newItem);
-            console.log('Updating Firestore with cards:', cards);
-            await albumRef.update({ cards: cards });
-            console.log('Update successful');
-            alert(`${name} added to "${albumData.name}"!`);
-            loadAlbums(document.getElementById('album-search-input').value.toLowerCase());
-        } else {
-            alert(`${name} is already in "${albumData.name}"!`);
-        }
-    } catch (error) {
-        console.error('Error adding to album:', error.message, error.code, error.stack);
-        alert('Failed to add to album: ' + error.message);
-    }
-}
-
-function searchAlbums() {
-    const query = document.getElementById('album-search-input').value.toLowerCase();
-    loadAlbums(query);
-}
-
-function showAlbumPopup(albumId, albumName) {
-    currentAlbumId = albumId; // Set the current album ID
-    const modal = document.getElementById('album-modal');
-    const modalAlbumName = document.getElementById('modal-album-name');
-    const modalCardContainer = document.getElementById('modal-card-container');
-    const cardsOnlyToggle = document.getElementById('cards-only-toggle');
-    const rearrangeButton = document.getElementById('rearrange-button');
-
-    modalAlbumName.textContent = albumName;
-    modalCardContainer.innerHTML = '';
-    cardsOnlyToggle.checked = false; // Reset toggle on open
-    rearrangeButton.style.display = 'none'; // Hide rearrange button initially
-    cardsOnlyToggle.onchange = () => toggleCardsOnly(this.checked, albumId);
-
-    db.collection('userAlbums').doc(albumId).get().then(doc => {
-        if (doc.exists) {
-            const album = doc.data();
-            const cards = Array.isArray(album.cards) ? album.cards : [];
-
-            if (cards.length === 0) {
-                modalCardContainer.innerHTML = '<p>No photocards in this album.</p>';
-            } else {
-                renderCards(cards, albumId, modalCardContainer);
-                rearrangeButton.style.display = 'block'; // Show rearrange button when cards exist
+        cardElement.addEventListener('click', (e) => {
+            if (!e.target.closest('.favorite-button') && !e.target.closest('.delete-button')) {
+                openFullscreenFlipCard(card);
             }
-            modal.style.display = 'block';
-        } else {
-            alert('Album no longer exists!');
-        }
-    }).catch(error => {
-        console.error('Error fetching album for popup:', error);
-        alert('Failed to load album details.');
+        });
+        cardContainer.appendChild(cardElement);
     });
 }
 
-function renderCards(cards, albumId, container) {
-    container.innerHTML = '';
-    cards.forEach((item, index) => {
-        const card = document.createElement('div');
-        card.className = 'modal-card-item';
-        if (isRearranging && document.getElementById('cards-only-toggle').checked) {
-            card.className += ' rearrange-mode';
-            card.innerHTML = `
-                <div class="flip-card" onclick="flipCard(this)">
-                    <div class="flip-card-inner">
-                        <div class="flip-card-front">
-                            <img src="${item.frontImage || 'https://via.placeholder.com/210x300'}" alt="${item.name || 'Card'} front" class="modal-card-image">
-                        </div>
-                        <div class="flip-card-back">
-                            <img src="${item.backImage || 'https://via.placeholder.com/210x300'}" alt="${item.name || 'Card'} back" class="modal-card-image">
-                        </div>
-                    </div>
-                </div>
-                <div class="card-controls">
-                    <button class="move-up" onclick="moveCard('${albumId}', ${index}, 'up')">↑</button>
-                    <button class="move-down" onclick="moveCard('${albumId}', ${index}, 'down')">↓</button>
-                </div>
-            `;
-        } else if (document.getElementById('cards-only-toggle').checked) {
-            card.className += ' modal-card-only';
-            card.innerHTML = `
-                <div class="flip-card" onclick="flipCard(this)">
-                    <div class="flip-card-inner">
-                        <div class="flip-card-front">
-                            <img src="${item.frontImage || 'https://via.placeholder.com/210x300'}" alt="${item.name || 'Card'} front" class="modal-card-image">
-                        </div>
-                        <div class="flip-card-back">
-                            <img src="${item.backImage || 'https://via.placeholder.com/210x300'}" alt="${item.name || 'Card'} back" class="modal-card-image">
-                        </div>
-                    </div>
-                </div>
-            `;
-        } else {
-            card.innerHTML = `
-                <div class="flip-card" onclick="flipCard(this)">
-                    <div class="flip-card-inner">
-                        <div class="flip-card-front">
-                            <img src="${item.frontImage || 'https://via.placeholder.com/210x300'}" alt="${item.name || 'Card'} front" class="modal-card-image">
-                        </div>
-                        <div class="flip-card-back">
-                            <img src="${item.backImage || 'https://via.placeholder.com/210x300'}" alt="${item.name || 'Card'} back" class="modal-card-image">
-                        </div>
-                    </div>
-                </div>
-                <div class="card-details">
-                    <h4>${item.name || 'Unnamed Card'}</h4>
-                    <p>Member: ${item.member || 'Unknown'}</p>
-                    <p>Album: ${item.album || 'Unknown'}</p>
-                    <p>Type: ${item.type || 'Unknown'}</p>
-                    <p>Details: ${item.details || 'No details'}</p>
-                    <button onclick="removeFromAlbum('${albumId}', ${index}); closeModal(); loadAlbums(document.getElementById('album-search-input').value.toLowerCase())">Remove</button>
-                </div>
-            `;
-        }
-        container.appendChild(card);
-    });
-    // Re-add event listeners after rendering, especially for rearrange mode
-    if (isRearranging) {
-        addRearrangeEventListeners(cards, albumId, container);
-    }
-}
-
-function toggleCardsOnly(isChecked, albumId) {
-    const modalCardContainer = document.getElementById('modal-card-container');
-    const cardsOnlyToggle = document.getElementById('cards-only-toggle');
-    const rearrangeButton = document.getElementById('rearrange-button');
-    
-    if (isChecked) {
-        rearrangeButton.style.display = 'block'; // Show rearrange button in cards-only mode
-        db.collection('userAlbums').doc(albumId).get().then(doc => {
-            if (doc.exists) {
-                const album = doc.data();
-                const cards = Array.isArray(album.cards) ? album.cards : [];
-                renderCards(cards, albumId, modalCardContainer);
-            }
-        });
-    } else {
-        rearrangeButton.style.display = 'none'; // Hide rearrange button in normal mode
-        db.collection('userAlbums').doc(albumId).get().then(doc => {
-            if (doc.exists) {
-                const album = doc.data();
-                const cards = Array.isArray(album.cards) ? album.cards : [];
-                renderCards(cards, albumId, modalCardContainer);
-            }
-        });
-    }
-}
-
-function closeModal() {
-    const modal = document.getElementById('album-modal');
-    modal.style.display = 'none';
-    currentAlbumId = null; // Reset current album ID
-    isRearranging = false; // Reset rearrange mode
-    const rearrangeButton = document.getElementById('rearrange-button');
-    rearrangeButton.style.display = 'none'; // Hide rearrange button when closing
-}
-
-function flipCard(card) {
-    const cardInner = card.querySelector('.flip-card-inner');
-    cardInner.style.transform = cardInner.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)';
-}
-
-async function showEditModal(albumId, albumName, albumCover) {
-    document.getElementById('edit-album-name').value = albumName;
-    document.getElementById('edit-album-cover').value = albumCover || '';
-    document.getElementById('edit-album-modal').style.display = 'block';
-
-    document.getElementById('edit-album-form').onsubmit = async (e) => {
-        e.preventDefault();
-        const newName = document.getElementById('edit-album-name').value.trim();
-        const newCover = document.getElementById('edit-album-cover').value.trim();
-
-        if (!newName) {
-            alert('Please enter an album name.');
-            return;
-        }
-
+// Function to toggle favorite status
+async function toggleFavorite(event, cardId) {
+    event.stopPropagation();
+    const card = photocards.find(c => c.id === cardId);
+    if (card) {
+        card.isFavorite = !card.isFavorite;
+        const button = event.currentTarget;
+        button.classList.toggle('liked');
+        
         try {
-            const albumRef = db.collection('userAlbums').doc(albumId);
-            await albumRef.update({
-                name: newName,
-                cover: newCover || 'https://via.placeholder.com/300x200' // Default rectangular cover
-            });
-            alert('Album updated successfully!');
-            closeEditModal();
-            loadAlbums(document.getElementById('album-search-input').value.toLowerCase());
+            await db.collection('photocards').doc(cardId).update({ isFavorite: card.isFavorite });
+            console.log(`Card with ID ${cardId} favorite status updated to ${card.isFavorite}.`);
         } catch (error) {
-            console.error('Error updating album:', error.message, error.code, error.stack);
-            alert('Failed to update album: ' + error.message);
-        }
-    };
-}
-
-function closeEditModal() {
-    const modal = document.getElementById('edit-album-modal');
-    modal.style.display = 'none';
-    document.getElementById('edit-album-form').onsubmit = null; // Reset form event
-}
-
-async function loadSuggestedPhotocards() {
-    try {
-        const snapshot = await db.collection('photocards').limit(5).get(); // Fetch up to 5 suggested photocards
-        const suggestions = [];
-        snapshot.forEach(doc => {
-            const card = doc.data();
-            card.id = doc.id;
-            suggestions.push(card);
-        });
-        window.suggestedPhotocards = suggestions; // Store for suggestions
-    } catch (error) {
-        console.error('Error loading suggested photocards:', error);
-    }
-}
-
-function suggestPhotocards() {
-    const query = document.getElementById('search-input').value.toLowerCase();
-    const suggestionsContainer = document.getElementById('search-suggestions');
-    suggestionsContainer.innerHTML = '';
-
-    if (!query && window.suggestedPhotocards) {
-        // Show suggested photocards if input is empty
-        window.suggestedPhotocards.forEach(card => {
-            const name = `${card.member} - ${card.album}`;
-            const suggestion = document.createElement('div');
-            suggestion.className = 'suggestion-item';
-            suggestion.innerHTML = `
-                <img src="${card.frontImageUrl}" alt="${name}" class="suggestion-image">
-                <div class="suggestion-details">
-                    <span class="suggestion-name">${name}</span>
-                    <p>Member: ${card.member}</p>
-                    <p>Album: ${card.album}</p>
-                    <p>Type: ${card.type}</p>
-                    <p>Details: ${card.details}</p>
-                </div>
-                <button onclick="selectSuggestion('${name}', '${card.member}', '${card.album}', '${card.type}', '${card.frontImageUrl}', '${card.backImageUrl || 'https://via.placeholder.com/150'}', '${card.details}')">Add</button>
-            `;
-            suggestionsContainer.appendChild(suggestion);
-        });
-    } else if (query && window.suggestedPhotocards) {
-        // Filter suggestions based on query
-        const filteredSuggestions = window.suggestedPhotocards.filter(card => 
-            (card.member && card.member.toLowerCase().includes(query)) ||
-            (card.album && card.album.toLowerCase().includes(query)) ||
-            (card.type && card.type.toLowerCase().includes(query)) ||
-            (card.details && card.details.toLowerCase().includes(query))
-        );
-
-        if (filteredSuggestions.length > 0) {
-            filteredSuggestions.forEach(card => {
-                const name = `${card.member} - ${card.album}`;
-                const suggestion = document.createElement('div');
-                suggestion.className = 'suggestion-item';
-                suggestion.innerHTML = `
-                    <img src="${card.frontImageUrl}" alt="${name}" class="suggestion-image">
-                    <div class="suggestion-details">
-                        <span class="suggestion-name">${name}</span>
-                        <p>Member: ${card.member}</p>
-                        <p>Album: ${card.album}</p>
-                        <p>Type: ${card.type}</p>
-                        <p>Details: ${card.details}</p>
-                    </div>
-                    <button onclick="selectSuggestion('${name}', '${card.member}', '${card.album}', '${card.type}', '${card.frontImageUrl}', '${card.backImageUrl || 'https://via.placeholder.com/150'}', '${card.details}')">Add</button>
-                `;
-                suggestionsContainer.appendChild(suggestion);
-            });
-        } else {
-            suggestionsContainer.innerHTML = '<p>No suggestions found.</p>';
+            console.error("Error updating favorite status: ", error);
         }
     }
-
-    suggestionsContainer.style.display = query || window.suggestedPhotocards ? 'block' : 'none';
 }
 
-function selectSuggestion(name, member, album, type, frontImage, backImage, details) {
-    const albumId = document.getElementById('album-select-' + window.suggestedPhotocards.find(card => `${card.member} - ${card.album}` === name)?.id)?.value || '';
-    addToAlbum(name, member, album, type, frontImage, backImage, details, albumId);
-    document.getElementById('search-input').value = '';
-    document.getElementById('search-suggestions').style.display = 'none';
+// Function to delete a card
+async function deleteCard(event, cardId) {
+    event.stopPropagation();
+    const confirmation = window.confirm("Are you sure you want to delete this card?");
+    if (confirmation) {
+        try {
+            await db.collection('photocards').doc(cardId).delete();
+            console.log(`Card with ID ${cardId} deleted successfully.`);
+            photocards = photocards.filter(card => card.id !== cardId);
+            displayCards(photocards);
+        } catch (error) {
+            console.error("Error deleting card: ", error);
+        }
+    }
 }
 
-function toggleRearrangeMode() {
-    isRearranging = !isRearranging;
-    const rearrangeButton = document.getElementById('rearrange-button');
-    const modalCardContainer = document.getElementById('modal-card-container');
-    const cardsOnlyToggle = document.getElementById('cards-only-toggle');
+// Function to open the fullscreen flip card modal
+function openFullscreenFlipCard(card) {
+    const fullscreenFlipCard = document.getElementById('fullscreen-flipcard');
+    const flipCardFront = fullscreenFlipCard.querySelector('.flip-card-front');
+    const flipCardBack = fullscreenFlipCard.querySelector('.flip-card-back');
+    const flipCardInner = fullscreenFlipCard.querySelector('.flip-card-inner');
+    
+    flipCardFront.style.backgroundImage = `url('${card.frontImageUrl}')`;
+    flipCardBack.style.backgroundImage = `url('${card.backImageUrl}')`;
+    flipCardInner.classList.remove('flipped'); // Reset flip state
+    fullscreenFlipCard.style.display = 'flex';
 
-    if (isRearranging) {
-        rearrangeButton.textContent = 'Save Order';
-        db.collection('userAlbums').doc(currentAlbumId).get().then(doc => {
-            if (doc.exists) {
-                const album = doc.data();
-                const cards = Array.isArray(album.cards) ? album.cards : [];
-                renderCards(cards, currentAlbumId, modalCardContainer);
-                addRearrangeEventListeners(cards, currentAlbumId, modalCardContainer);
-            }
-        });
+    // Add flip on click/tap in fullscreen
+    fullscreenFlipCard.querySelector('.flip-card').addEventListener('click', (e) => {
+        e.stopPropagation();
+        flipCardInner.classList.toggle('flipped');
+    });
+}
+
+// Function to close the fullscreen flip card modal
+function closeFullscreenFlipCard() {
+    const fullscreenFlipCard = document.getElementById('fullscreen-flipcard');
+    fullscreenFlipCard.style.display = 'none';
+}
+
+// Sort Cards by Newest
+function sortByNewest() {
+    if (photocards.length === 0) return;
+    const sortedCards = [...photocards].sort((a, b) => {
+        const dateA = a.timestamp && typeof a.timestamp.toDate === 'function' ? a.timestamp.toDate() : new Date(0);
+        const dateB = b.timestamp && typeof b.timestamp.toDate === 'function' ? b.timestamp.toDate() : new Date(0);
+        return dateB - dateA;
+    });
+    displayCards(sortedCards);
+}
+
+// Sort Cards by Oldest
+function sortByOldest() {
+    if (photocards.length === 0) return;
+    const sortedCards = [...photocards].sort((a, b) => {
+        const dateA = a.timestamp && typeof a.timestamp.toDate === 'function' ? a.timestamp.toDate() : new Date(0);
+        const dateB = b.timestamp && typeof b.timestamp.toDate === 'function' ? b.timestamp.toDate() : new Date(0);
+        return dateA - dateB;
+    });
+    displayCards(sortedCards);
+}
+
+// Toggle Show Favorites
+function toggleShowFavorites() {
+    showFavoritesMode = !showFavoritesMode;
+    const button = document.getElementById('show-favorites-button');
+    button.classList.toggle('active');
+    if (showFavoritesMode) {
+        button.textContent = 'Show All Cards';
+        const favoriteCards = photocards.filter(card => card.isFavorite);
+        displayCards(favoriteCards);
     } else {
-        rearrangeButton.textContent = 'Edit Order';
-        saveRearrangedOrder(currentAlbumId).then(() => {
-            db.collection('userAlbums').doc(currentAlbumId).get().then(doc => {
-                if (doc.exists) {
-                    const album = doc.data();
-                    const cards = Array.isArray(album.cards) ? album.cards : [];
-                    renderCards(cards, currentAlbumId, modalCardContainer);
-                    if (cardsOnlyToggle.checked) {
-                        toggleCardsOnly(true, currentAlbumId); // Reapply cards-only mode
-                    }
-                }
-            });
-        });
+        button.textContent = 'Show Favorites';
+        displayCards(photocards);
     }
 }
 
-function addRearrangeEventListeners(cards, albumId, container) {
-    const moveUpButtons = container.querySelectorAll('.move-up');
-    const moveDownButtons = container.querySelectorAll('.move-down');
+// Handle Search Function
+function handleSearch() {
+    let searchInput = document.getElementById('search-input').value.trim();
+    const searchTerms = searchInput.split(/\s+/).map(term => term.toLowerCase()).filter(term => term);
 
-    moveUpButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            const indexMatch = button.getAttribute('onclick').match(/moveCard\('([^']*)',(\d+),'([^']*)'/);
-            if (indexMatch && indexMatch[2]) {
-                const index = parseInt(indexMatch[2], 10);
-                moveCard(albumId, index, 'up');
-            }
-        });
-    });
-
-    moveDownButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            const indexMatch = button.getAttribute('onclick').match(/moveCard\('([^']*)',(\d+),'([^']*)'/);
-            if (indexMatch && indexMatch[2]) {
-                const index = parseInt(indexMatch[2], 10);
-                moveCard(albumId, index, 'down');
-            }
-        });
-    });
-}
-
-async function moveCard(albumId, currentIndex, direction) {
-    if (!isRearranging) return;
-
-    const albumRef = db.collection('userAlbums').doc(albumId);
-    const albumDoc = await albumRef.get();
-    if (!albumDoc.exists) {
-        alert('Album no longer exists!');
+    if (searchTerms.length === 0) {
+        displayCards(photocards);
         return;
     }
 
-    const album = albumDoc.data();
-    const cards = Array.isArray(album.cards) ? [...album.cards] : [];
-    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    const filteredCards = photocards.filter(card => {
+        return searchTerms.every(term => {
+            return (
+                (card.album && card.album.toLowerCase().includes(term)) ||
+                (card.member && card.member.toLowerCase().includes(term)) ||
+                (card.type && card.type.toLowerCase().includes(term)) ||
+                (card.details && card.details.toLowerCase().includes(term))
+            );
+        });
+    });
 
-    if (newIndex < 0 || newIndex >= cards.length) return;
-
-    [cards[currentIndex], cards[newIndex]] = [cards[newIndex], cards[currentIndex]];
-
-    await albumRef.update({ cards: cards });
-    const modalCardContainer = document.getElementById('modal-card-container');
-    renderCards(cards, albumId, modalCardContainer);
-    addRearrangeEventListeners(cards, albumId, modalCardContainer); // Re-add event listeners after rendering
+    displayCards(filteredCards);
 }
 
-async function saveRearrangedOrder(albumId) {
-    try {
-        const modalCardContainer = document.getElementById('modal-card-container');
-        const cardItems = modalCardContainer.querySelectorAll('.rearrange-mode');
-        const newCards = [];
-
-        for (const item of cardItems) {
-            const moveUpButton = item.querySelector('.move-up');
-            if (moveUpButton) {
-                const onclickStr = moveUpButton.getAttribute('onclick');
-                const indexMatch = onclickStr.match(/moveCard\('[^']*','([^']*)'/);
-                if (indexMatch && indexMatch[1]) {
-                    const index = parseInt(indexMatch[1], 10);
-                    const albumDoc = await db.collection('userAlbums').doc(albumId).get();
-                    if (albumDoc.exists) {
-                        const album = albumDoc.data();
-                        const cards = Array.isArray(album.cards) ? album.cards : [];
-                        if (index >= 0 && index < cards.length) {
-                            newCards.push(cards[index]);
-                        }
-                    }
-                }
-            }
-        }
-
-        if (newCards.length === 0) {
-            throw new Error('No cards found to save order.');
-        }
-
-        await db.collection('userAlbums').doc(albumId).update({ cards: newCards });
-        console.log('Card order saved successfully in Firestore');
-        alert('Card order saved successfully!');
-        return Promise.resolve(); // Ensure async function returns a promise for chaining
-    } catch (error) {
-        console.error('Error saving card order:', error.message, error.code, error.stack);
-        alert('Failed to save card order: ' + error.message);
-        throw error; // Re-throw to propagate the error if needed
+// Handle Sort Change
+function handleSortChange() {
+    const sortValue = document.getElementById('sort-dropdown').value;
+    if (sortValue === 'newest') {
+        sortByNewest();
+    } else if (sortValue === 'oldest') {
+        sortByOldest();
     }
 }
+
+// Event listeners for sorting, searching, and favorites
+document.getElementById('sort-dropdown').addEventListener('change', handleSortChange);
+document.getElementById('search-input').addEventListener('keyup', handleSearch);
+document.getElementById('show-favorites-button').addEventListener('click', toggleShowFavorites);
+
+// Close fullscreen modal when clicking outside the card
+document.addEventListener('click', (e) => {
+    const fullscreenFlipCard = document.getElementById('fullscreen-flipcard');
+    if (e.target === fullscreenFlipCard) {
+        closeFullscreenFlipCard();
+    }
+});
+
+// Initialize the page
+window.onload = function() {
+    console.log('Page loaded, waiting for Firebase auth state...');
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            console.log('User signed in:', user.uid);
+            updateUserCatalogue();
+            loadCards();
+        } else {
+            console.log('No user signed in.');
+            updateUserCatalogue(); // This will redirect to login
+        }
+    });
+};
