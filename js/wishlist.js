@@ -71,7 +71,7 @@ async function loadCards() {
     }
 }
 
-// Display Cards in the catalog
+// Display Cards in the catalog - MODIFIED TO REMOVE FLIPPING IN REGULAR VIEW
 function displayCards(cards) {
     const cardContainer = document.getElementById('card-container');
     cardContainer.innerHTML = '';
@@ -80,11 +80,8 @@ function displayCards(cards) {
         const cardElement = document.createElement('div');
         cardElement.classList.add('card');
         cardElement.innerHTML = `
-            <div class="card-images flip-card">
-                <div class="flip-card-inner">
-                    <div class="flip-card-front" style="background-image: url('${card.frontImageUrl}')"></div>
-                    <div class="flip-card-back" style="background-image: url('${card.backImageUrl}')"></div>
-                </div>
+            <div class="card-images">
+                <div class="card-front" style="background-image: url('${card.frontImageUrl}')"></div>
             </div>
             <div class="card-details">
                 <h3>${card.member}</h3>
@@ -104,13 +101,7 @@ function displayCards(cards) {
             </div>
         `;
 
-        // Add flip on click/tap
-        const flipCardInner = cardElement.querySelector('.flip-card-inner');
-        cardElement.querySelector('.flip-card').addEventListener('click', (e) => {
-            e.stopPropagation();
-            flipCardInner.classList.toggle('flipped');
-        });
-
+        // Removed flip on click/tap event listener from regular cards
         cardElement.addEventListener('click', (e) => {
             if (!e.target.closest('.favorite-button') && !e.target.closest('.delete-button')) {
                 openFullscreenFlipCard(card);
@@ -154,7 +145,7 @@ async function deleteCard(event, cardId) {
     }
 }
 
-// Function to open the fullscreen flip card modal
+// Function to open the fullscreen flip card modal - KEEPS FLIPPING FUNCTIONALITY
 function openFullscreenFlipCard(card) {
     const fullscreenFlipCard = document.getElementById('fullscreen-flipcard');
     const flipCardFront = fullscreenFlipCard.querySelector('.flip-card-front');
