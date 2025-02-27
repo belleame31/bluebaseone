@@ -101,8 +101,10 @@ function displayCards(cards) {
             </div>
         `;
 
+        // Only open fullscreen on click, no flipping here
         cardElement.addEventListener('click', (e) => {
             if (!e.target.closest('.favorite-button') && !e.target.closest('.delete-button')) {
+                console.log('Opening fullscreen for card:', card.id);
                 openFullscreenFlipCard(card);
             }
         });
@@ -144,21 +146,97 @@ async function deleteCard(event, cardId) {
     }
 }
 
-// Function to open the fullscreen flip card modal
+// Function to open and handle the fullscreen 360° card modal
 function openFullscreenFlipCard(card) {
     const fullscreenFlipCard = document.getElementById('fullscreen-flipcard');
-    const flipCardFront = fullscreenFlipCard.querySelector('.flip-card-front');
-    const flipCardBack = fullscreenFlipCard.querySelector('.flip-card-back');
+    const card360 = fullscreenFlipCard.querySelector('.card-360');
+    const container = fullscreenFlipCard.querySelector('.card-container');
     
-    flipCardFront.style.backgroundImage = `url('${card.frontImageUrl}')`;
-    flipCardBack.style.backgroundImage = `url('${card.backImageUrl}')`;
-    fullscreenFlipCard.style.display = 'flex';
+    // Set images and gloss
+    const frontFace = fullscreenFlipCard.querySelector('.card-360-face.front');
+    const backFace = fullscreenFlipCard.querySelector('.card-360-face.back');
+    frontFace.style.setProperty('--photo-url', `url('${card.frontImageUrl}')`);
+    backFace.style.setProperty('--photo-url', `url('${card.backImageUrl}')`);
+    
+    // Reset rotation
+    card360.style.transform = 'rotateY(0deg)';
+    card360.style.setProperty('--rotation-angle', '0deg'); // Initial gloss position
+    
+    // Show the modal
+    fullscreenFlipCard.classList.add('active');
+    
+    // Rotation state
+    let isDragging = false;
+    let startX;
+    let rotateY = 0;
+    
+    // Handle touch/mouse start
+    const handleStart = (e) => {
+        e.preventDefault();
+        isDragging = true;
+        const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+        startX = clientX;
+        card360.classList.add('dragging');
+        console.log('Drag started');
+    };
+    
+    // Handle touch/mouse move
+    const handleMove = (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+        
+        // Calculate rotation based on horizontal drag distance
+        const dx = clientX - startX;
+        rotateY += dx * 0.5; // Adjusted sensitivity for smoother rotation
+        
+        // Normalize rotateY to 0-360 for gloss calculation
+        const normalizedAngle = ((rotateY % 360) + 360) % 360;
+        
+        // Apply rotation and update gloss position
+        card360.style.transform = `rotateY(${rotateY}deg)`;
+        card360.style.setProperty('--rotation-angle', `${normalizedAngle}deg`);
+        
+        // Update starting point for continuous dragging
+        startX = clientX;
+    };
+    
+    // Handle touch/mouse end
+    const handleEnd = (e) => {
+        e.preventDefault();
+        isDragging = false;
+        card360.classList.remove('dragging');
+        console.log('Drag ended');
+    };
+    
+    // Clean up existing listeners
+    container.removeEventListener('mousedown', handleStart);
+    container.removeEventListener('mousemove', handleMove);
+    container.removeEventListener('mouseup', handleEnd);
+    container.removeEventListener('touchstart', handleStart);
+    container.removeEventListener('touchmove', handleMove);
+    container.removeEventListener('touchend', handleEnd);
+    
+    // Add event listeners for mouse (desktop)
+    container.addEventListener('mousedown', handleStart);
+    container.addEventListener('mousemove', handleMove);
+    container.addEventListener('mouseup', handleEnd);
+    
+    // Add event listeners for touch (mobile)
+    container.addEventListener('touchstart', handleStart, { passive: false });
+    container.addEventListener('touchmove', handleMove, { passive: false });
+    container.addEventListener('touchend', handleEnd, { passive: false });
 }
 
-// Function to close the fullscreen flip card modal
+// Function to close the fullscreen 360° card modal
 function closeFullscreenFlipCard() {
     const fullscreenFlipCard = document.getElementById('fullscreen-flipcard');
-    fullscreenFlipCard.style.display = 'none';
+    const card360 = fullscreenFlipCard.querySelector('.card-360');
+    
+    // Clean up by replacing the node (removes all listeners)
+    card360.replaceWith(card360.cloneNode(true));
+    fullscreenFlipCard.classList.remove('active');
+    console.log('Modal closed via inline onclick');
 }
 
 // Sort Cards by Newest
