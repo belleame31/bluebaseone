@@ -7,6 +7,7 @@ body {
     flex-direction: column;
     min-height: 100vh;
     background-color: #f8f9fa;
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
 /* Main content styles */
@@ -61,7 +62,7 @@ main {
 /* Show Favorites Button */
 .show-favorites-button {
     display: block;
-    margin: 10px auto 20px; /* Center below controls */
+    margin: 10px auto 20px;
     padding: 10px 20px;
     font-size: 16px;
     font-family: Arial, sans-serif;
@@ -72,6 +73,7 @@ main {
     cursor: pointer;
     transition: all 0.2s ease;
     outline: none;
+    touch-action: manipulation; /* Optimize for touch */
 }
 
 .show-favorites-button:hover {
@@ -155,6 +157,7 @@ main {
     transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
     box-sizing: border-box;
+    touch-action: manipulation; /* Optimize for touch */
 }
 
 .card:hover {
@@ -222,89 +225,94 @@ main {
 
 /* Fullscreen Flip Card Modal Styles */
 .flipcard-modal {
-    display: flex;
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    display: none;
+    background: rgba(0, 0, 0, 0.8);
     justify-content: center;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.8);
     z-index: 1000;
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight */
+    touch-action: none; /* Prevent default touch actions */
 }
 
-.flip-card {
-    width: 300px;
-    height: 450px;
-    perspective: 1000px;
+.flipcard-modal.active {
+    display: flex;
 }
 
-.flip-card-inner {
-    position: relative;
+.card-container {
     width: 100%;
     height: 100%;
-    text-align: center;
-    transition: transform 0.6s;
+    position: relative;
+    perspective: 1000px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+}
+
+.card-360 {
+    width: 300px; /* Slightly larger than grid cards */
+    height: 450px;
+    max-width: 90vw; /* Responsive width */
+    max-height: 80vh; /* Responsive height */
+    position: relative;
     transform-style: preserve-3d;
+    transition: transform 0.1s ease;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background-color: #fff;
+    border: 2px solid #e0e0e0;
+    --rotation-angle: 0deg; /* Custom property for rotation */
 }
 
-.flip-card:hover .flip-card-inner {
-    transform: rotateY(180deg);
+.card-360.dragging {
+    cursor: grabbing;
 }
 
-.flip-card-front,
-.flip-card-back {
+.card-360-face {
     position: absolute;
     width: 100%;
     height: 100%;
     backface-visibility: hidden;
     border-radius: 12px;
-}
-
-.flip-card-front {
+    overflow: hidden;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    background-image: inherit; /* Set via JS */
+   background-image: linear-gradient(
+        calc(120deg + var(--rotation-angle)),
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%, /* Enhanced gloss */
+        rgba(255, 255, 255, 0) 100%
+    ), var(--photo-url); /* Dynamic photo URL */
+background-blend-mode: screen, multiply; /* Combined blend modes */
+filter: contrast(1.2) saturate(1.2); /* Enhance colors */
 }
 
-.flip-card-back {
-    background-color: #0044cc;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.card-360-face.back {
     transform: rotateY(180deg);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
 }
 
 .close-button {
     position: absolute;
     top: 20px;
     right: 20px;
+    width: 44px; /* Larger tap target for mobile */
+    height: 44px;
     font-size: 32px;
+    line-height: 44px;
+    text-align: center;
     color: #fff;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    border-radius: 50%;
     cursor: pointer;
-    z-index: 1001;
-}
-
-.position-controls {
-    margin: 20px 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.position-controls label {
-    margin: 10px 0;
-}
-
-.position-controls input[type="range"] {
-    width: 200px;
-    margin-bottom: 10px;
+    z-index: 1001; /* Above card */
+    touch-action: manipulation; /* Optimize for touch */
 }
 
 /* Button container */
@@ -317,22 +325,23 @@ main {
 
 /* Instagram-style Favorite Button */
 .favorite-button {
-    background: #fff; /* White background */
-    border: 1px solid #dbdbdb; /* Light gray border */
-    border-radius: 50%; /* Makes it circular */
+    background: #fff;
+    border: 1px solid #dbdbdb;
+    border-radius: 50%;
     padding: 8px;
     cursor: pointer;
     position: relative;
     width: 30px;
     height: 30px;
     outline: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    touch-action: manipulation; /* Optimize for touch */
 }
 
 .favorite-button::before {
-    content: '\2661'; /* Outline heart (♡) for unliked state */
+    content: '\2661';
     font-size: 24px;
-    color: #262626; /* Instagram dark gray */
+    color: #262626;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -341,26 +350,26 @@ main {
 }
 
 .favorite-button.liked::before {
-    content: '\2665'; /* Filled heart (♥) for liked state */
-    color: #ed4956; /* Instagram red */
-    animation: heartPulse 0.3s ease; /* Subtle pulse animation */
+    content: '\2665';
+    color: #ed4956;
+    animation: heartPulse 0.3s ease;
 }
 
 .favorite-button:hover {
-    background: #fafafa; /* Light gray hover state */
+    background: #fafafa;
 }
 
 .favorite-button:hover:not(.liked)::before {
-    color: #8e8e8e; /* Lighter gray on hover */
+    color: #8e8e8e;
     transform: translate(-50%, -50%) scale(1.1);
 }
 
 .favorite-button.liked:hover::before {
-    color: #c13545; /* Darker red on hover */
+    color: #c13545;
 }
 
 .favorite-button:active {
-    transform: scale(0.95); /* Slightly smaller when clicked */
+    transform: scale(0.95);
 }
 
 /* Subtle pulse animation for liked state */
@@ -372,20 +381,21 @@ main {
 
 /* Enhanced Delete Button */
 .delete-button {
-    background: #fff; /* White background */
-    border: 1px solid #dbdbdb; /* Light gray border */
-    border-radius: 50%; /* Makes it circular */
+    background: #fff;
+    border: 1px solid #dbdbdb;
+    border-radius: 50%;
     padding: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
     width: 30px;
     height: 30px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    touch-action: manipulation; /* Optimize for touch */
 }
 
 .delete-button::before {
-    content: '\1F5D1'; /* Trash can icon */
+    content: '\1F5D1';
     font-size: 20px;
     color: #666;
     position: absolute;
@@ -396,14 +406,14 @@ main {
 }
 
 .delete-button:hover {
-    background: #fafafa; /* Light gray hover state */
+    background: #fafafa;
 }
 
 .delete-button:hover::before {
-    color: #dc3545; /* Red on hover */
+    color: #dc3545;
     transform: translate(-50%, -50%) scale(1.1);
 }
 
 .delete-button:active {
-    transform: scale(0.95); /* Slightly smaller when clicked */
+    transform: scale(0.95);
 }
