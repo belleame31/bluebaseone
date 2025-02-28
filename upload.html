@@ -116,6 +116,27 @@
     <script>
         const db = firebase.firestore();
 
+        // Flip handler with debounce (shared for both preview and modal)
+        let isFlipping = false;
+        function flipCardHandler(event) {
+            event.preventDefault();
+            console.log('Flip handler triggered by:', event.type);
+            if (isFlipping) {
+                console.log('Flip skipped due to debounce');
+                return;
+            }
+
+            isFlipping = true;
+            const card = event.currentTarget;
+            if (card) {
+                card.classList.toggle('flipped');
+                console.log('Card flipped, new state:', card.classList.contains('flipped'));
+                setTimeout(() => { isFlipping = false; }, 800);
+            } else {
+                console.error('Card element not found');
+            }
+        }
+
         function confirmPhotocardDetails() {
             const frontImageUrl = document.getElementById('front-image-url').value.trim();
             const backImageUrl = document.getElementById('back-image-url').value.trim();
@@ -125,7 +146,7 @@
             const details = document.getElementById('details').value.trim();
 
             if (!frontImageUrl || !member || !album || !type) {
-                document.getElementById('status-message').textContent = 'Please fill in all required fields (Front Image URL, Member, Album, Type).';
+                showStatusMessage('Please fill in all required fields (Front Image URL, Member, Album, Type).', 'error');
                 return;
             }
 
@@ -134,7 +155,19 @@
             document.getElementById('modal-type').textContent = `Type: ${type}`;
             document.getElementById('modal-details').textContent = `Details: ${details || 'None'}`;
             document.getElementById('modal-front-image').src = frontImageUrl;
-            document.getElementById('modal-back-image').src = backImageUrl || '';
+            document.getElementById('modal-back-image').src = backImageUrl || 'https://via.placeholder.com/250x350?text=No+Back+Image';
+
+            const modalCard = document.getElementById('flip-card');
+            if (modalCard) {
+                modalCard.classList.remove('flipped');
+                modalCard.removeEventListener('click', flipCardHandler);
+                modalCard.removeEventListener('touchstart', flipCardHandler);
+                modalCard.addEventListener('click', flipCardHandler);
+                modalCard.addEventListener('touchstart', flipCardHandler, { passive: true });
+                console.log('Flip listeners added to #flip-card (modal)');
+            } else {
+                console.error('Modal card element (#flip-card) not found during setup');
+            }
 
             document.getElementById('confirmation-modal').style.display = 'block';
         }
@@ -166,18 +199,25 @@
                     cardId: docRef.id
                 });
 
-                document.getElementById('status-message').textContent = 'Photocard uploaded successfully!';
-                closeModal();
+                closeModal(); // Close modal first
+                showStatusMessage('Photocard uploaded successfully!', 'success'); // Then show message
                 resetForm();
             } catch (error) {
                 console.error('Error uploading photocard:', error);
-                document.getElementById('status-message').textContent = 'Error uploading photocard. Please try again.';
+                closeModal(); // Close modal even on error
+                showStatusMessage('Error uploading photocard. Please try again.', 'error');
             }
         }
 
         function closeModal() {
             document.getElementById('confirmation-modal').style.display = 'none';
-            document.getElementById('status-message').textContent = '';
+            const modalCard = document.getElementById('flip-card');
+            if (modalCard) {
+                modalCard.classList.remove('flipped');
+                modalCard.removeEventListener('click', flipCardHandler);
+                modalCard.removeEventListener('touchstart', flipCardHandler);
+                console.log('Flip listeners removed from #flip-card (modal)');
+            }
         }
 
         function resetForm() {
@@ -188,15 +228,62 @@
             document.getElementById('type').value = '';
             document.getElementById('details').value = '';
             document.getElementById('preview-section').innerHTML = '<p>No image uploaded yet.</p>';
+            // Don’t clear status message here to let it persist
         }
 
+        // Status message handler
+        function showStatusMessage(message, status) {
+            const statusMessage = document.getElementById('status-message');
+            if (statusMessage) {
+                statusMessage.textContent = message;
+                statusMessage.className = `status-message ${status}`; // Apply success or error class
+                statusMessage.style.display = message ? 'block' : 'none'; // Toggle visibility
+                console.log('Status message set:', message, 'with status:', status);
+                // Ensure it’s visible by forcing a reflow
+                statusMessage.offsetHeight; // Trigger reflow
+            } else {
+                console.error('Status message element (#status-message) not found');
+            }
+        }
+
+        // Preview flip card logic
         document.getElementById('front-image-url').addEventListener('input', function() {
-            const url = this.value.trim();
+            const frontUrl = this.value.trim();
+            const backUrl = document.getElementById('back-image-url').value.trim();
             const preview = document.getElementById('preview-section');
-            if (url) {
-                preview.innerHTML = `<img src="${url}" alt="Front Preview" style="max-width: 200px;">`;
+
+            if (frontUrl) {
+                preview.innerHTML = `
+                    <div class="card" id="preview-card">
+                        <div class="card-face card-front">
+                            <img src="${frontUrl}" alt="Front Preview">
+                        </div>
+                        <div class="card-face card-back">
+                            <img src="${backUrl || 'https://via.placeholder.com/250x350?text=No+Back+Image'}" alt="Back Preview">
+                        </div>
+                    </div>
+                `;
+                const previewCard = document.getElementById('preview-card');
+                if (previewCard) {
+                    previewCard.removeEventListener('click', flipCardHandler);
+                    previewCard.removeEventListener('touchstart', flipCardHandler);
+                    previewCard.addEventListener('click', flipCardHandler);
+                    previewCard.addEventListener('touchstart', flipCardHandler, { passive: true });
+                    console.log('Flip listeners added to #preview-card (preview)');
+                }
             } else {
                 preview.innerHTML = '<p>No image uploaded yet.</p>';
+            }
+        });
+
+        document.getElementById('back-image-url').addEventListener('input', function() {
+            const backUrl = this.value.trim();
+            const previewCard = document.getElementById('preview-card');
+            if (previewCard) {
+                const backImg = previewCard.querySelector('.card-back img');
+                if (backImg) {
+                    backImg.src = backUrl || 'https://via.placeholder.com/250x350?text=No+Back+Image';
+                }
             }
         });
     </script>
