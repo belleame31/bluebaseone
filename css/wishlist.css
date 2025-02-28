@@ -5,14 +5,14 @@ body {
     background-repeat: no-repeat; /* Prevent repeating the background */
 }
 
-Album {
+.album {
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
 }
 
 .album-header {
-    background-color: #fff; /* Changed from transparent */
+    background-color: transparent; /* Kept transparent for Bloom Your Album */
     padding: 20px;
     border-radius: 10px; /* Rounded corners for the rectangle */
     margin-bottom: 20px;
@@ -29,11 +29,11 @@ Album {
     color: #6c757d; /* Gray for paragraph text */
     font-size: 1.1rem;
     margin: 0;
-    background-color: #fff; /* Changed from transparent */
+    background-color: transparent; /* Kept transparent as part of Bloom Your Album */
 }
 
 .your-albums-header {
-    background-color: #fff; /* Changed from transparent */
+    background-color: transparent; /* Kept transparent for Your Albums */
     padding: 15px 20px;
     border-radius: 10px; /* Rounded corners */
     margin-bottom: 15px;
@@ -69,7 +69,7 @@ Album {
     border: 1px solid #ced4da;
     border-radius: 4px;
     box-sizing: border-box;
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
 }
 
 .album-creation button, #edit-album-form button {
@@ -107,7 +107,7 @@ Album {
     cursor: pointer;
     margin-left: 10px;
     vertical-align: middle;
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
 }
 
 .edit-logo:hover {
@@ -129,7 +129,7 @@ Album {
     border: 1px solid #ced4da;
     border-radius: 4px;
     box-sizing: border-box;
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
 }
 
 .search-bar button {
@@ -160,7 +160,7 @@ Album {
     border: 1px solid #ced4da;
     border-radius: 4px;
     box-sizing: border-box;
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
 }
 
 .album-search-bar button {
@@ -189,33 +189,34 @@ Album {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
     margin-bottom: 20px;
+    justify-content: center; /* Center the grid items */
 }
 
 /* Extra small screens (e.g., mobile phones, up to 576px) */
 @media (max-width: 576px) {
     #album-container {
-        grid-template-columns: 1fr; /* 1 album per row */
+        grid-template-columns: minmax(200px, 1fr);
     }
 }
 
 /* Small screens (e.g., larger phones, 577px to 768px) */
 @media (min-width: 577px) and (max-width: 768px) {
     #album-container {
-        grid-template-columns: repeat(2, 1fr); /* 2 albums per row */
+        grid-template-columns: repeat(2, minmax(200px, 1fr));
     }
 }
 
 /* Medium screens (e.g., tablets, 769px to 992px) */
 @media (min-width: 769px) and (max-width: 992px) {
     #album-container {
-        grid-template-columns: repeat(3, 1fr); /* 3 albums per row */
+        grid-template-columns: repeat(3, minmax(200px, 1fr));
     }
 }
 
 /* Large screens (e.g., desktops, 993px and up) */
 @media (min-width: 993px) {
     #album-container {
-        grid-template-columns: repeat(4, 1fr); /* 4 albums per row */
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     }
 }
 
@@ -223,7 +224,7 @@ Album {
     border: 1px solid #ddd;
     padding: 10px;
     border-radius: 5px;
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -282,7 +283,7 @@ button:hover {
     align-items: center;
     justify-content: center;
     margin-top: 5px;
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
 }
 
 select {
@@ -291,7 +292,7 @@ select {
     border: 1px solid #ced4da;
     border-radius: 4px;
     box-sizing: border-box;
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
 }
 
 .modal {
@@ -307,7 +308,7 @@ select {
 }
 
 .modal-content {
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
     margin: 15% auto;
     padding: 20px;
     border: 1px solid #888;
@@ -315,7 +316,7 @@ select {
     max-width: 1200px;
     border-radius: 5px;
     box-sizing: border-box;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .close-button {
@@ -324,7 +325,7 @@ select {
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
 }
 
 .close-button:hover,
@@ -353,25 +354,32 @@ select {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 15px;
     margin-top: 20px;
+    justify-content: center; /* Center the grid items */
 }
 
 .modal-card-only .modal-card-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr)); /* Ensure at least 2 cards per row */
-    grid-auto-rows: auto; /* Rows adjust to content */
-    gap: 15px; /* Space between cards */
-    justify-content: center; /* Center the grid horizontally */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-auto-rows: auto;
+    gap: 15px;
+    justify-content: center;
     width: 100%;
-    max-width: 450px; /* 2 × 210px + 2 × 15px gaps = 450px */
-    max-height: 90vh; /* Limit height to viewport */
-    overflow-y: auto; /* Scroll if needed */
-    margin: 0 auto; /* Center the grid within the modal */
+    max-width: 430px; /* 2 × 200px + 2 × 15px gaps = 430px */
+    max-height: 90vh;
+    overflow-y: auto;
+    margin: 0 auto;
 }
 
 @media (min-width: 675px) {
     .modal-card-only .modal-card-grid {
-        grid-template-columns: repeat(3, 210px); /* 3 cards per row on wider screens */
-        width: 660px; /* 3 × 210px + 2 × 15px gaps */
+        grid-template-columns: repeat(3, 300px);
+        width: 930px; /* 3 × 300px + 2 × 15px gaps = 930px */
+    }
+}
+
+@media (min-width: 993px) {
+    .modal-card-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     }
 }
 
@@ -379,7 +387,7 @@ select {
     border: 1px solid #ddd;
     padding: 10px;
     border-radius: 5px;
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -395,7 +403,7 @@ select {
 }
 
 .rearrange-mode .card-details {
-    display: none !important; /* Ensure details are hidden in rearrange mode when in cards-only mode */
+    display: none !important; /* Ensure details are hidden in rearrange mode */
 }
 
 .card-controls {
@@ -411,12 +419,15 @@ select {
 }
 
 .flip-card {
-    width: 100%; /* Full width of the grid cell */
+    width: 100%;
     height: 0;
-    padding-bottom: 142.86%; /* Maintain 210:300 aspect ratio */
+    padding-bottom: 145%; /* Height confirmed good */
     perspective: 1000px;
     position: relative;
-    max-width: 210px; /* Cap card width */
+    max-width: 300px;
+    min-width: 200px;
+    border: 2px solid #e0e0e0; /* Consistent border */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Consistent shadow */
 }
 
 .flip-card-inner {
@@ -447,10 +458,19 @@ select {
     transform: rotateY(180deg);
 }
 
+.flip-card-front p, .flip-card-back p {
+    margin: 5px 10px;
+    font-size: 1rem;
+    white-space: nowrap; /* Prevent wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Truncate with ellipsis if too long */
+    max-width: calc(100% - 20px); /* Account for margins */
+}
+
 .modal-card-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ensure image covers the card */
+    object-fit: cover;
     border-radius: 10px;
 }
 
@@ -458,7 +478,7 @@ select {
 #edit-album-modal .modal-content {
     max-width: 400px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
 }
 
 #edit-album-form {
@@ -484,7 +504,7 @@ select {
     top: 100%;
     left: 0;
     right: 0;
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
     border: 1px solid #ced4da;
     border-radius: 4px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -501,11 +521,11 @@ select {
     align-items: flex-start;
     gap: 10px;
     cursor: pointer;
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
 }
 
 .suggestion-item:hover {
-    background-color: #fff; /* Changed from transparent */
+    background-color: #f5f5f5; /* Light gray hover effect */
 }
 
 .suggestion-image {
@@ -519,7 +539,7 @@ select {
     flex-grow: 1;
     font-size: 0.9rem;
     color: #333;
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
 }
 
 .suggestion-name {
@@ -531,7 +551,7 @@ select {
     margin: 2px 0;
     font-size: 0.8rem;
     color: #6c757d;
-    background-color: #fff; /* Changed from transparent */
+    background-color: #fff; /* Changed to white */
 }
 
 .suggestion-item button {
