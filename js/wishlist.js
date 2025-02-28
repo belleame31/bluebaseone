@@ -1,6 +1,8 @@
 const db = firebase.firestore();
 let currentAlbumId = null;
 let isRearranging = false;
+let currentPage = 1;
+const albumsPerPage = 10;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadAlbums();
@@ -38,9 +40,11 @@ async function createAlbum() {
         await db.collection('userAlbums').add({
             name: albumName,
             cover: albumCover || 'https://via.placeholder.com/300x200',
-            cards: []
+            cards: [],
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         alert(`Album "${albumName}" created!`);
+        currentPage = 1;
         loadAlbums();
     } catch (error) {
         console.error('Error creating album:', error.message, error.code, error.stack);
@@ -56,22 +60,34 @@ async function loadAlbums(query = '') {
 
     try {
         console.log('Attempting to fetch albums from Firestore...');
-        const snapshot = await db.collection('userAlbums').get();
-        console.log('Snapshot received:', snapshot);
+        let querySnapshot = await db.collection('userAlbums').get();
+        console.log('Snapshot received:', querySnapshot);
 
-        if (snapshot.empty) {
+        if (querySnapshot.empty) {
             console.log('No albums found in userAlbums collection.');
             container.innerHTML = '<p>You have no albums. Create one above!</p>';
             return;
         }
 
-        let hasMatches = false;
-        snapshot.forEach(doc => {
-            const album = doc.data();
-            console.log('Album data:', album);
-            const cards = Array.isArray(album.cards) ? album.cards : [];
+        const allAlbums = [];
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            // Provide a fallback timestamp for albums without createdAt
+            const createdAt = data.createdAt || new firebase.firestore.Timestamp(0, 0); // Default to Unix epoch if missing
+            allAlbums.push({ id: doc.id, ...data, createdAt });
+        });
 
-            const albumMatches = !query || 
+        // Sort albums by createdAt (newest first), handling null cases
+        allAlbums.sort((a, b) => {
+            const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
+            const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+            return timeB - timeA; // Descending order
+        });
+
+        // Filter albums based on query
+        const filteredAlbums = allAlbums.filter(album => {
+            const cards = Array.isArray(album.cards) ? album.cards : [];
+            return !query || 
                 album.name.toLowerCase().includes(query) || 
                 cards.some(card => 
                     (card.name && card.name.toLowerCase().includes(query)) ||
@@ -80,28 +96,57 @@ async function loadAlbums(query = '') {
                     (card.type && card.type.toLowerCase().includes(query)) ||
                     (card.details && card.details.toLowerCase().includes(query))
                 );
-
-            if (albumMatches) {
-                hasMatches = true;
-                const albumDiv = document.createElement('div');
-                albumDiv.className = 'album-section';
-                albumDiv.innerHTML = `
-                    <img src="${album.cover}" alt="${album.name} cover" class="album-cover" onclick="showAlbumPopup('${doc.id}', '${album.name}')">
-                    <div class="album-info">
-                        <h3>${album.name}</h3>
-                        <span class="edit-logo" onclick="showEditModal('${doc.id}', '${album.name}', '${album.cover}')">✎</span>
-                    </div>
-                `;
-                container.appendChild(albumDiv);
-            }
         });
 
-        if (!hasMatches && query) {
+        if (filteredAlbums.length === 0 && query) {
             container.innerHTML = '<p>No albums match your search.</p>';
+            return;
         }
+
+        // Pagination
+        const totalPages = Math.ceil(filteredAlbums.length / albumsPerPage);
+        const startIndex = (currentPage - 1) * albumsPerPage;
+        const endIndex = startIndex + albumsPerPage;
+        const paginatedAlbums = filteredAlbums.slice(startIndex, endIndex);
+
+        paginatedAlbums.forEach(album => {
+            const albumDiv = document.createElement('div');
+            albumDiv.className = 'album-section';
+            albumDiv.innerHTML = `
+                <img src="${album.cover}" alt="${album.name} cover" class="album-cover" onclick="showAlbumPopup('${album.id}', '${album.name}')">
+                <div class="album-info">
+                    <h3>${album.name}</h3>
+                    <span class="edit-logo" onclick="showEditModal('${album.id}', '${album.name}', '${album.cover}')">✎</span>
+                </div>
+            `;
+            container.appendChild(albumDiv);
+        });
+
+        // Add pagination controls
+        const paginationDiv = document.createElement('div');
+        paginationDiv.className = 'pagination-controls';
+        paginationDiv.innerHTML = `
+            <p>Page ${currentPage} of ${totalPages}</p>
+            ${currentPage < totalPages ? '<button onclick="loadNextPage()">Next</button>' : ''}
+            ${currentPage > 1 ? '<button onclick="loadPreviousPage()">Previous</button>' : ''}
+        `;
+        container.appendChild(paginationDiv);
+
     } catch (error) {
         console.error('Detailed error loading albums:', error.message, error.code, error.stack);
         container.innerHTML = '<p>Error loading albums: ' + error.message + '</p>';
+    }
+}
+
+function loadNextPage() {
+    currentPage++;
+    loadAlbums(document.getElementById('album-search-input').value.toLowerCase());
+}
+
+function loadPreviousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        loadAlbums(document.getElementById('album-search-input').value.toLowerCase());
     }
 }
 
@@ -226,6 +271,7 @@ async function addToAlbum(name, member, album, type, frontImage, backImage, deta
 }
 
 function searchAlbums() {
+    currentPage = 1;
     const query = document.getElementById('album-search-input').value.toLowerCase();
     loadAlbums(query);
 }
@@ -376,6 +422,16 @@ async function showEditModal(albumId, albumName, albumCover) {
     document.getElementById('edit-album-cover').value = albumCover || '';
     document.getElementById('edit-album-modal').style.display = 'block';
 
+    let deleteButton = document.getElementById('delete-album-btn');
+    if (!deleteButton) {
+        deleteButton = document.createElement('button');
+        deleteButton.id = 'delete-album-btn';
+        deleteButton.textContent = 'Delete Album';
+        deleteButton.className = 'delete-button';
+        deleteButton.onclick = () => deleteAlbum(albumId);
+        document.querySelector('#edit-album-modal .modal-content').appendChild(deleteButton);
+    }
+
     document.getElementById('edit-album-form').onsubmit = async (e) => {
         e.preventDefault();
         const newName = document.getElementById('edit-album-name').value.trim();
@@ -406,6 +462,38 @@ function closeEditModal() {
     const modal = document.getElementById('edit-album-modal');
     modal.style.display = 'none';
     document.getElementById('edit-album-form').onsubmit = null;
+}
+
+async function deleteAlbum(albumId) {
+    try {
+        const confirmDelete = confirm('Are you sure you want to delete this album? This action cannot be undone.');
+        
+        if (!confirmDelete) {
+            return;
+        }
+
+        const albumRef = db.collection('userAlbums').doc(albumId);
+        const albumDoc = await albumRef.get();
+        
+        if (!albumDoc.exists) {
+            alert('Album no longer exists!');
+            return;
+        }
+
+        await albumRef.delete();
+        
+        alert('Album deleted successfully!');
+        closeEditModal();
+        currentPage = 1;
+        loadAlbums(document.getElementById('album-search-input').value.toLowerCase());
+        
+        if (currentAlbumId === albumId) {
+            closeModal();
+        }
+    } catch (error) {
+        console.error('Error deleting album:', error.message, error.code, error.stack);
+        alert('Failed to delete album: ' + error.message);
+    }
 }
 
 async function loadSuggestedPhotocards() {
